@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <Windows.h>
+#include <winternl.h>
 
 #include <MinUmdfLoaderInterface.h>
 #include <wdf/um/UmdfDriverEnums0215.h>
@@ -17,22 +18,21 @@
 #define STATUS_SUCCESS                   ((NTSTATUS)0x00000000L)    // ntsubauth
 #define STATUS_INSUFFICIENT_RESOURCES    ((NTSTATUS)0xC000009AL)
 #define STATUS_NOT_SUPPORTED             ((NTSTATUS)0xC00000BBL)
+#define STATUS_NOT_IMPLEMENTED           ((NTSTATUS)0xC0000002L)
 
-NTSTATUS DlUmLoadVersionLib(
+NTSTATUS DlUmBindVersionLib(
     _In_ PVOID Context,
     _In_ PWDF_BIND_INFO BindInfo,
     _In_ PWDF_DRIVER_GLOBALS* DriverGlobals
 );
 
-NTSTATUS DlUmLoadExtensionClass(
+NTSTATUS DlUmBindExtensionClass(
     _In_ PVOID Context,
     _In_ PWDF_BIND_INFO BindInfo,
     _In_ PWDF_DRIVER_GLOBALS DriverGlobals,
     _In_ PWDF_CLASS_EXTENSION ClassExtensionInfo
 );
 
-PVOID g_WdfFunctions0215[WdfFunctionTableNumEntries];
-
-PVOID g_UcmFunctions0100[UcmFunctionTableNumEntries];
+NTSTATUS DlWdfFunctionImplStub();
 
 #endif

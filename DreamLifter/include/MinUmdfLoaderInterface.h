@@ -10,8 +10,6 @@ DECLARE_HANDLE(WDFDRIVER);
 typedef ULONG WDF_MAJOR_VERSION;
 typedef ULONG WDF_MINOR_VERSION;
 typedef ULONG WDF_BUILD_NUMBER;
-typedef LONG NTSTATUS;
-typedef NTSTATUS* PNTSTATUS;
 
 typedef struct _WDF_VERSION {
     WDF_MAJOR_VERSION  Major;
@@ -31,11 +29,11 @@ typedef struct _WDF_BIND_INFO {
 typedef struct _WDF_CLASS_EXTENSION {
     size_t Size;
     char* ExtensionName;
-    DWORD MajorVersion;
-    DWORD MinorVersion;
+    ULONG MajorVersion;
+    ULONG MinorVersion;
     ULONG FuncCount;
     void* FuncTable;
-    DWORD Pad0;
+    ULONG Pad0;
     void* GlobalsPtr;
     void* CustomizedEntryPoint;
     INT64 Pad1;
@@ -63,7 +61,7 @@ NTSTATUS
 (*PFN_LOADER_BIND_VERSION_LIB)(
     _In_ PVOID Context,
     _In_ PWDF_BIND_INFO BindInfo,
-    _In_ PWDF_DRIVER_GLOBALS DriverGlobals
+    _In_ PWDF_DRIVER_GLOBALS *DriverGlobals
     );
 
 typedef
@@ -78,12 +76,22 @@ NTSTATUS
 typedef struct _WDF_LOADER_INTERFACE {
     size_t LoaderInterfaceSize;
     PFN_LOADER_BIND_VERSION_LIB BindVersionLibrary;
-    DWORD Unused0;
+    ULONG Unused0;
     PFN_LOADER_BIND_EXTENSION_CLASS BindExtensionClass;
-    DWORD Unused1;
+    ULONG Unused1;
     PVOID WdfRegisterClassLibrary;
-    DWORD LoaderFlags;
-    DWORD Unused2;
+    ULONG LoaderFlags;
+    ULONG Unused2;
 } WDF_LOADER_INTERFACE, * PWDF_LOADER_INTERFACE;
+
+// NTSTATUS __fastcall FxDriverEntryUm(PVOID LoaderInterface, PVOID Context, PVOID DriverObject, PUNICODE_STRING RegistryPath)
+typedef
+NTSTATUS
+(*PFN_WUDF_DRIVER_ENTRY_UM)(
+    _In_ PVOID LoaderInterface,
+    _In_ PVOID Context,
+    _In_ PVOID DriverObject,
+    _In_ PUNICODE_STRING RegistryPath
+    );
 
 #endif
