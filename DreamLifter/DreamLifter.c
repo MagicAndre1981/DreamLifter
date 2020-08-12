@@ -74,7 +74,7 @@ int main(int argc, char* argv[])
     hTycLibrary = LoadLibraryA("C:\\Windows\\DreamLifter\\TyC.dll");
     if (hTycLibrary == NULL)
     {
-        printf("Unload to load TyC.dll, error %d\n", GetLastError());
+        printf("[ERROR] Unload to load TyC.dll, error %d\n", GetLastError());
         err = ENFILE;
         goto exit;
     }
@@ -83,17 +83,17 @@ int main(int argc, char* argv[])
     pTycEntry = (PFN_WUDF_DRIVER_ENTRY_UM) GetProcAddress(hTycLibrary, "FxDriverEntryUm");
     if (pTycEntry == NULL)
     {
-        printf("Failed to locate FxDriverEntryUm\n");
+        printf("[ERROR] Failed to locate FxDriverEntryUm\n");
         err = ENOENT;
         goto exit;
     }
 
     // Let's kick this in
     status = pTycEntry(&g_loaderInterface, NULL, NULL, &g_FakeRegPath);
-    printf("DriverEntry returns, result 0x%x\n", status);
+    printf("[INFO] DriverEntry returns, result 0x%x\n", status);
 
     if (!NT_SUCCESS(status)) {
-        printf("DriverEntry failed: 0x%x\n", status);
+        printf("[ERROR] DriverEntry failed: 0x%x\n", status);
         err = RtlNtStatusToDosError(status);
         goto exit;
     }
@@ -104,7 +104,7 @@ int main(int argc, char* argv[])
         RtlZeroMemory(&deviceInit, sizeof(deviceInit));
         status = g_pDriverInstance->DriverDeviceAdd((WDFDRIVER) g_pDriverInstance, (PWDFDEVICE_INIT) &deviceInit);
         if (!NT_SUCCESS(status)) {
-            printf("DriverDeviceAdd failed: 0x%x\n", status);
+            printf("[ERROR] DriverDeviceAdd failed: 0x%x\n", status);
             err = RtlNtStatusToDosError(status);
             goto cleanup;
         }
@@ -162,7 +162,7 @@ NTSTATUS DlUmBindVersionLib(
 
     // Check FX version
     // Bind to the stub WDF implementation
-    printf("Request load UMDF version %d.%d\n", BindInfo->Version.Major, BindInfo->Version.Minor);
+    printf("[INFO] Request load UMDF version %d.%d\n", BindInfo->Version.Major, BindInfo->Version.Minor);
     if (BindInfo->Version.Major = 2 && BindInfo->Version.Minor == 15)
     {
         if (BindInfo->FuncCount == WdfFunctionTableNumEntries)
@@ -171,7 +171,7 @@ NTSTATUS DlUmBindVersionLib(
         }
         else
         {
-            printf("WDF function table entry count mismatch\n");
+            printf("[INFO] WDF function table entry count mismatch\n");
             return STATUS_INVALID_PARAMETER;
         }
     }
@@ -196,12 +196,12 @@ NTSTATUS DlUmBindExtensionClass(
     if (strcmp("UcmCx", ClassExtensionInfo->ExtensionName))
     {
         if (ClassExtensionInfo->FuncCount == 11) {
-            printf("Request load WDF UcmCx extension version %d.%d\n", ClassExtensionInfo->MajorVersion, ClassExtensionInfo->MinorVersion);
+            printf("[INFO] Request load WDF UcmCx extension version %d.%d\n", ClassExtensionInfo->MajorVersion, ClassExtensionInfo->MinorVersion);
             RtlCopyMemory((PVOID) ClassExtensionInfo->FuncTable, g_UcmFunctions0100, sizeof(g_UcmFunctions0100));
             return STATUS_SUCCESS;
         }
         else {
-            printf("Request load WDF UcmCx extension version %d.%d, but function count mismatch: %d (expect 11)\n", ClassExtensionInfo->MajorVersion,
+            printf("[INFO] Request load WDF UcmCx extension version %d.%d, but function count mismatch: %d (expect 11)\n", ClassExtensionInfo->MajorVersion,
                 ClassExtensionInfo->MinorVersion, ClassExtensionInfo->FuncCount);
         }
         
@@ -213,7 +213,7 @@ NTSTATUS DlUmBindExtensionClass(
 NTSTATUS DlWdfFunctionImplStub()
 {
     // Calling a function that is not yet implemented.
-    printf("Calling a unimplemented WDF Fx stub function\n");
+    printf("[ERROR] Calling a unimplemented WDF Fx stub function\n");
 
     if (IsDebuggerPresent())
     {
@@ -226,7 +226,7 @@ NTSTATUS DlWdfFunctionImplStub()
 NTSTATUS DlWdfCxUcmFunctionImplStub()
 {
     // Calling a function that is not yet implemented.
-    printf("Calling a unimplemented WDF UcmCx stub function\n");
+    printf("[ERROR] Calling a unimplemented WDF UcmCx stub function\n");
 
     if (IsDebuggerPresent())
     {

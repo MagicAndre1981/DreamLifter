@@ -329,7 +329,7 @@ NTSTATUS DlWdfRegistryQueryULong(
 
     RtlInitUnicodeString(&KeyEnableDisplay, L"EnableDisplay");
     if (RtlEqualUnicodeString(&KeyEnableDisplay, ValueName, FALSE)) {
-        printf("INFO] WdfRegistryQueryUlong requesting EnableDisplay key. Returns 0 to disable HDMI control\n");
+        printf("[INFO] WdfRegistryQueryUlong requesting EnableDisplay key. Returns 0 to disable HDMI control\n");
         OutputDebugString(L"[INFO] WdfRegistryQueryUlong requesting EnableDisplay key. Returns 0 to disable HDMI control\n");
         *Value = 0;
         return STATUS_SUCCESS;
