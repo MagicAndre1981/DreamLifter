@@ -54,6 +54,9 @@ int main(int argc, char* argv[])
     g_WdfFunctions0215[WdfRegistryCloseTableIndex] = (PVOID) DlWdfRegistryClose;
     g_WdfFunctions0215[WdfRegistryQueryULongTableIndex] = (PVOID) DlWdfRegistryQueryULong;
     g_WdfFunctions0215[WdfTimerCreateTableIndex] = (PVOID) DlWdfTimerCreate;
+    g_WdfFunctions0215[WdfTimerGetParentObjectTableIndex] = (PVOID) DlWdfTimerGetParentObject;
+    g_WdfFunctions0215[WdfTimerStartTableIndex] = (PVOID) DlWdfTimerStart;
+    g_WdfFunctions0215[WdfTimerStopTableIndex] = (PVOID) DlWdfTimerStop;
 
     // Prepare loader interface
     RtlZeroMemory(&g_loaderInterface, sizeof(WDF_LOADER_INTERFACE));

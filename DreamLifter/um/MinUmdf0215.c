@@ -368,10 +368,143 @@ NTSTATUS DlWdfTimerCreate(
         return STATUS_INSUFFICIENT_RESOURCES;
     }
 
+    if (Config->AutomaticSerialization == TRUE
+        && Attributes->SynchronizationScope != WdfSynchronizationScopeInheritFromParent
+        && Attributes->SynchronizationScope != WdfSynchronizationScopeDevice) {
+        OutputDebugString(L"[ERROR] The timer serialization mode is not yet supported\n");
+        return STATUS_NOT_SUPPORTED;
+    }
+
     pTimer->AutomaticSerialization = Config->AutomaticSerialization;
     pTimer->EvtTimerFunc = Config->EvtTimerFunc;
     pTimer->ParentObject = Attributes->ParentObject;
 
     *Timer = (WDFTIMER)pTimer;
     return STATUS_SUCCESS;
+}
+
+WDFOBJECT DlWdfTimerGetParentObject(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFTIMER Timer
+)
+{
+    UNREFERENCED_PARAMETER(DriverGlobals);
+
+    return (WDFOBJECT) ((PDREAMLIFTER_TIMER)Timer)->ParentObject;
+}
+
+BOOLEAN DlWdfTimerStart(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFTIMER Timer,
+    _In_
+    LONGLONG DueTime
+)
+{
+    PDREAMLIFTER_TIMER pTimer = (PDREAMLIFTER_TIMER)Timer;
+    UINT uElapse = 0;
+
+    UNREFERENCED_PARAMETER(DriverGlobals);
+
+    if (pTimer == NULL) {
+        return FALSE;
+    }
+
+    // Check the time and convert to Win32 thing
+    if (DueTime < 0) {
+        // 1 System Unit = 100-nanosecond intervals
+        // 1 millisecond = 1000000 nanoseconds
+        uElapse = (UINT) ((-DueTime) * 100 / 1000000);
+    }
+    else {
+        // Not yet seeing the use case here
+        OutputDebugString(L"[WARN] Attempt to use absoulte time for WdfTimer, which is not yet supported\n");
+        if (IsDebuggerPresent())
+        {
+            DebugBreak();
+        }
+        return FALSE;
+    }
+
+    // Start new thread and set Win32 timer using the Timer pointer as ID
+    pTimer->Win32TimerHandle = SetTimer(
+        NULL,
+        (UINT_PTR) pTimer,
+        uElapse,
+        DlWin32TimerCallbackProc
+    );
+
+    return TRUE;
+}
+
+void DlWin32TimerCallbackProc(
+    HWND Arg1,
+    UINT Arg2,
+    UINT_PTR Arg3,
+    DWORD Arg4
+)
+{
+    DWORD AsyncThreadId = 0;
+    PDREAMLIFTER_TIMER pTimer = (PDREAMLIFTER_TIMER)Arg3;
+
+    UNREFERENCED_PARAMETER(Arg1);
+    UNREFERENCED_PARAMETER(Arg2);
+    UNREFERENCED_PARAMETER(Arg4);
+
+    if (pTimer != NULL) {
+        // Push things in a new thread
+        CreateThread(
+            NULL,
+            0,
+            DlWin32TimerCallbackThreadWorker,
+            pTimer,
+            0,
+            &AsyncThreadId
+        );
+    }
+}
+
+DWORD WINAPI DlWin32TimerCallbackThreadWorker(
+    LPVOID lpParam
+)
+{
+    PDREAMLIFTER_TIMER pTimer = (PDREAMLIFTER_TIMER) lpParam;
+
+    if (pTimer->AutomaticSerialization) {
+        // Take device mutex if needed
+        WaitForSingleObject(g_pDevice->SerializationMutex, INFINITE);
+    }
+
+    pTimer->EvtTimerFunc((WDFTIMER)pTimer);
+    
+    if (pTimer->AutomaticSerialization) {
+        ReleaseMutex(g_pDevice->SerializationMutex);
+    }
+
+    return 0;
+}
+
+BOOLEAN DlWdfTimerStop(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFTIMER Timer,
+    _In_
+    BOOLEAN Wait
+)
+{
+    PDREAMLIFTER_TIMER pTimer = (PDREAMLIFTER_TIMER) Timer;
+
+    UNREFERENCED_PARAMETER(DriverGlobals);
+    // Technically we need to wait, but not in this case
+    UNREFERENCED_PARAMETER(Wait);
+
+    if (pTimer != NULL && pTimer->Win32TimerHandle != 0) {
+        return (BOOLEAN) KillTimer(NULL, pTimer->Win32TimerHandle);
+    }
+
+    return FALSE;
 }

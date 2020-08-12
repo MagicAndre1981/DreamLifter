@@ -827,4 +827,48 @@ NTSTATUS
     WDFTIMER* Timer
     );
 
+//
+// WDF Function: WdfTimerGetParentObject
+//
+typedef
+_IRQL_requires_max_(DISPATCH_LEVEL)
+WDFOBJECT
+(*PFN_WDFTIMERGETPARENTOBJECT)(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFTIMER Timer
+    );
+
+//
+// WDF Function: WdfTimerStart
+//
+typedef
+_IRQL_requires_max_(DISPATCH_LEVEL)
+BOOLEAN
+(*PFN_WDFTIMERSTART)(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFTIMER Timer,
+    _In_
+    LONGLONG DueTime
+    );
+
+//
+// WDF Function: WdfTimerStop
+//
+typedef
+_When_(Wait == __true, _IRQL_requires_max_(PASSIVE_LEVEL))
+_When_(Wait == __false, _IRQL_requires_max_(DISPATCH_LEVEL))
+BOOLEAN
+(*PFN_WDFTIMERSTOP)(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFTIMER Timer,
+    _In_
+    BOOLEAN Wait
+    );
+
 #endif

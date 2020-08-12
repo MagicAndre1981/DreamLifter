@@ -242,7 +242,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>MinCore.lib;MinCore_downlevel.lib;ntdll.lib</AdditionalDependencies>
+      <AdditionalDependencies>MinCore.lib;MinCore_downlevel.lib;ntdll.lib;User32.lib</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>kernel32.lib</IgnoreSpecificDefaultLibraries>

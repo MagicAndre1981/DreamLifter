@@ -217,4 +217,40 @@ NTSTATUS DlWdfTimerCreate(
     WDFTIMER* Timer
 );
 
+WDFOBJECT DlWdfTimerGetParentObject(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFTIMER Timer
+);
+
+BOOLEAN DlWdfTimerStart(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFTIMER Timer,
+    _In_
+    LONGLONG DueTime
+);
+
+void DlWin32TimerCallbackProc(
+    HWND Arg1,
+    UINT Arg2,
+    UINT_PTR Arg3,
+    DWORD Arg4
+);
+
+DWORD WINAPI DlWin32TimerCallbackThreadWorker(
+    LPVOID lpParam
+);
+
+BOOLEAN DlWdfTimerStop(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFTIMER Timer,
+    _In_
+    BOOLEAN Wait
+);
+
 #endif
