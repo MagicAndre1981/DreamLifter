@@ -342,6 +342,10 @@
     <ClInclude Include="include\wdf\um\MinUmdf0215.h" />
     <ClInclude Include="include\wdf\um\UcmFuncEnums0100.h" />
     <ClInclude Include="include\wdf\um\UmdfDriverEnums0215.h" />
+    <ClInclude Include="resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="Resource.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
