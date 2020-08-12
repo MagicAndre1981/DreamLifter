@@ -119,7 +119,7 @@ NTSTATUS DlWdfDeviceCreate(
         }
     }
 
-    Device = (WDFDEVICE*) pDevice;
+    *Device = (WDFDEVICE) pDevice;
     g_pDevice = pDevice;
     return STATUS_SUCCESS;
 }
@@ -151,4 +151,68 @@ NTSTATUS DlWdfCreateDeviceInterface(
     );
 
     return STATUS_SUCCESS;
+}
+
+NTSTATUS DlWdfSpinLockCreate(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_opt_
+    PWDF_OBJECT_ATTRIBUTES SpinLockAttributes,
+    _Out_
+    WDFSPINLOCK* SpinLock
+)
+{
+    PDREAMLIFTER_SPINLOCK pSpinLock;
+
+    UNREFERENCED_PARAMETER(DriverGlobals);
+    UNREFERENCED_PARAMETER(SpinLockAttributes);
+
+    pSpinLock = malloc(sizeof(DREAMLIFTER_SPINLOCK));
+    if (pSpinLock == NULL) {
+        OutputDebugString(L"[ERROR] Failed to allocate spin lock\n");
+        return STATUS_INSUFFICIENT_RESOURCES;
+    }
+
+    pSpinLock->Exclusion = 1;
+    *SpinLock = (WDFSPINLOCK) pSpinLock;
+    return STATUS_SUCCESS;
+}
+
+void DlWdfSpinLockAcquire(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    _Requires_lock_not_held_(_Curr_)
+    _Acquires_lock_(_Curr_)
+    _IRQL_saves_
+    WDFSPINLOCK SpinLock
+)
+{
+    PDREAMLIFTER_SPINLOCK pSpinLock;
+
+    UNREFERENCED_PARAMETER(DriverGlobals);
+
+    pSpinLock = (PDREAMLIFTER_SPINLOCK) SpinLock;
+    while (InterlockedCompareExchange(&pSpinLock->Exclusion, 0, 1) != 1)
+    {
+        ;
+    }
+}
+
+void DlWdfSpinLockRelease(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    _Requires_lock_held_(_Curr_)
+    _Releases_lock_(_Curr_)
+    _IRQL_restores_
+    WDFSPINLOCK SpinLock
+)
+{
+    PDREAMLIFTER_SPINLOCK pSpinLock;
+
+    UNREFERENCED_PARAMETER(DriverGlobals);
+
+    pSpinLock = (PDREAMLIFTER_SPINLOCK)SpinLock;
+    pSpinLock->Exclusion = 1;
 }

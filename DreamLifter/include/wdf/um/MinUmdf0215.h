@@ -6,6 +6,8 @@
 DECLARE_HANDLE(WDFOBJECT);
 DECLARE_HANDLE(WDFDEVICE);
 
+DECLARE_HANDLE(WDFSPINLOCK);
+
 DECLARE_HANDLE(WDFIORESREQLIST);
 DECLARE_HANDLE(WDFIORESLIST);
 DECLARE_HANDLE(WDFCMRESLIST);
@@ -461,6 +463,41 @@ NTSTATUS
     CONST GUID* InterfaceClassGUID,
     _In_opt_
     PCUNICODE_STRING ReferenceString
+    );
+
+typedef
+NTSTATUS
+(*PFN_WDFSPINLOCKCREATE)(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_opt_
+    PWDF_OBJECT_ATTRIBUTES SpinLockAttributes,
+    _Out_
+    WDFSPINLOCK* SpinLock
+    );
+
+typedef
+VOID
+(*PFN_WDFSPINLOCKACQUIRE)(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    _Requires_lock_not_held_(_Curr_)
+    _Acquires_lock_(_Curr_)
+    _IRQL_saves_
+    WDFSPINLOCK SpinLock
+    );
+
+typedef
+VOID
+(*PFN_WDFSPINLOCKRELEASE)(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    _Requires_lock_held_(_Curr_)
+    _Releases_lock_(_Curr_)
+    _IRQL_restores_
+    WDFSPINLOCK SpinLock
     );
 
 #endif

@@ -40,7 +40,6 @@ NTSTATUS DlWdfFunctionImplStub();
 
 // Begin DreamLifter WDF implementation
 typedef struct _DRIVER_INSTANCE {
-    int Unused; // Keep compatibility
     PFN_WDF_OBJECT_CONTEXT_CLEANUP DriverCleanupCallback;
     PFN_WDF_OBJECT_CONTEXT_DESTROY DriverDestroyCallback;
     PFN_WDF_DRIVER_DEVICE_ADD      DriverDeviceAdd;
@@ -103,6 +102,39 @@ NTSTATUS DlWdfCreateDeviceInterface(
     CONST GUID* InterfaceClassGUID,
     _In_opt_
     PCUNICODE_STRING ReferenceString
+);
+
+typedef struct _DREAMLIFTER_SPINLOCK {
+    volatile long Exclusion;
+} DREAMLIFTER_SPINLOCK, *PDREAMLIFTER_SPINLOCK;
+
+NTSTATUS DlWdfSpinLockCreate(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_opt_
+    PWDF_OBJECT_ATTRIBUTES SpinLockAttributes,
+    _Out_
+    WDFSPINLOCK* SpinLock
+);
+
+void DlWdfSpinLockAcquire(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    _Requires_lock_not_held_(_Curr_)
+    _Acquires_lock_(_Curr_)
+    _IRQL_saves_
+    WDFSPINLOCK SpinLock
+);
+
+void DlWdfSpinLockRelease(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    _Requires_lock_held_(_Curr_)
+    _Releases_lock_(_Curr_)
+    _IRQL_restores_
+    WDFSPINLOCK SpinLock
 );
 
 #endif
