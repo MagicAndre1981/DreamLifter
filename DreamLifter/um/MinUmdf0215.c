@@ -3,6 +3,7 @@
 #include <DreamLifter.h>
 
 extern PDRIVER_INSTANCE g_pDriverInstance;
+extern PDREAMLIFTER_DEVICE g_pDevice;
 
 NTSTATUS DlWdfCreateDriver(
     _In_
@@ -36,7 +37,7 @@ NTSTATUS DlWdfCreateDriver(
     pDriverInstance = malloc(sizeof(DRIVER_INSTANCE));
     RtlZeroMemory(pDriverInstance, sizeof(DRIVER_INSTANCE));
     if (pDriverInstance == NULL) {
-        OutputDebugString(L"Failed to allocate DRIVER_INSTANCE struct\n");
+        OutputDebugString(L"[ERROR] Failed to allocate DRIVER_INSTANCE struct\n");
         return STATUS_INSUFFICIENT_RESOURCES;
     }
 
@@ -53,5 +54,72 @@ NTSTATUS DlWdfCreateDriver(
     pDriverInstance->DriverDeviceAdd = DriverConfig->EvtDriverDeviceAdd;
     pDriverInstance->DriverUnload = DriverConfig->EvtDriverUnload;
 
+    return STATUS_SUCCESS;
+}
+
+void DlWdfDeviceInitSetPnpPowerEventCallbacks(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    PVOID DeviceInit,
+    _In_
+    PWDF_PNPPOWER_EVENT_CALLBACKS PnpPowerEventCallbacks
+)
+{
+    UNREFERENCED_PARAMETER(DriverGlobals);
+
+    if (DeviceInit != NULL && PnpPowerEventCallbacks != NULL) {
+        ((PDREAMLIFTER_DEVICE_INIT)DeviceInit)->EvtDevicePrepareHardware = PnpPowerEventCallbacks->EvtDevicePrepareHardware;
+    }
+}
+
+NTSTATUS DlWdfDeviceCreate(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _Inout_
+    PWDFDEVICE_INIT* DeviceInit,
+    _In_opt_
+    PWDF_OBJECT_ATTRIBUTES DeviceAttributes,
+    _Out_
+    WDFDEVICE* Device
+)
+{
+    PDREAMLIFTER_DEVICE pDevice;
+    size_t contextSize = 0;
+
+    UNREFERENCED_PARAMETER(DriverGlobals);
+
+    if (DeviceInit == NULL || DeviceAttributes == NULL) {
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    pDevice = malloc(sizeof(DREAMLIFTER_DEVICE));
+    if (pDevice == NULL) {
+        OutputDebugString(L"[ERROR] Failed to allocate DREAMLIFTER_DEVICE struct\n");
+        return STATUS_INSUFFICIENT_RESOURCES;
+    }
+
+    RtlZeroMemory(pDevice, sizeof(DREAMLIFTER_DEVICE));
+    pDevice->EvtDevicePrepareHardware = ((PDREAMLIFTER_DEVICE_INIT) DeviceInit)->EvtDevicePrepareHardware;
+    if (DeviceAttributes->ContextTypeInfo != NULL) {
+        pDevice->DeviceContextInfo = DeviceAttributes->ContextTypeInfo;
+        contextSize = (DeviceAttributes->ContextSizeOverride > DeviceAttributes->ContextTypeInfo->ContextSize) ? 
+            DeviceAttributes->ContextSizeOverride : DeviceAttributes->ContextTypeInfo->ContextSize;
+        if (contextSize > 0) {
+            pDevice->DeviceContext = malloc(contextSize);
+            if (pDevice->DeviceContext == NULL) {
+                OutputDebugString(L"[ERROR] Failed to allocate device context struct\n");
+                return STATUS_INSUFFICIENT_RESOURCES;
+            }
+            RtlZeroMemory(pDevice->DeviceContext, contextSize);
+        }
+        else {
+            OutputDebugString(L"[WARN] Unexpected device context size 0\n");
+            return STATUS_INVALID_PARAMETER;
+        }
+    }
+
+    Device = (WDFDEVICE*) pDevice;
+    g_pDevice = pDevice;
     return STATUS_SUCCESS;
 }

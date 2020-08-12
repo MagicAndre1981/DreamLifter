@@ -8,6 +8,7 @@ PVOID g_UcmFunctions0100[UcmFunctionTableNumEntries];
 WDF_LOADER_INTERFACE g_loaderInterface;
 UNICODE_STRING g_FakeRegPath;
 PDRIVER_INSTANCE g_pDriverInstance;
+PDREAMLIFTER_DEVICE g_pDevice;
 
 int main(int argc, char* argv[])
 {
@@ -41,6 +42,8 @@ int main(int argc, char* argv[])
 
     // Now fills in the implementation
     g_WdfFunctions0215[WdfDriverCreateTableIndex] = (PVOID) DlWdfCreateDriver;
+    g_WdfFunctions0215[WdfDeviceInitSetPnpPowerEventCallbacksTableIndex] = (PVOID) DlWdfDeviceInitSetPnpPowerEventCallbacks;
+    g_WdfFunctions0215[WdfDeviceCreateTableIndex] = (PVOID) DlWdfDeviceCreate;
 
     // Prepare loader interface
     RtlZeroMemory(&g_loaderInterface, sizeof(WDF_LOADER_INTERFACE));
@@ -79,9 +82,27 @@ int main(int argc, char* argv[])
         goto exit;
     }
 
-    // TODO: Call add device event
+    // Call add device event
+    if (g_pDriverInstance->DriverDeviceAdd != NULL) {
+        DREAMLIFTER_DEVICE_INIT deviceInit;
+        RtlZeroMemory(&deviceInit, sizeof(deviceInit));
+        status = g_pDriverInstance->DriverDeviceAdd((WDFDRIVER) g_pDriverInstance, (PWDFDEVICE_INIT) &deviceInit);
+        if (!NT_SUCCESS(status)) {
+            printf("DriverDeviceAdd failed: 0x%x\n", status);
+            err = RtlNtStatusToDosError(status);
+            goto cleanup;
+        }
+        // Start main loop here
+    }
 
     // Cleanup
+cleanup:
+    if (g_pDevice != NULL) {
+        if (g_pDevice->DeviceContext != NULL) {
+            free(g_pDevice->DeviceContext);
+        }
+    }
+
     if (g_pDriverInstance != NULL) {
         if (g_pDriverInstance->DriverCleanupCallback != NULL) {
             g_pDriverInstance->DriverCleanupCallback((WDFOBJECT) g_pDriverInstance); 

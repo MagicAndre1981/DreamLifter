@@ -412,7 +412,7 @@ typedef struct _WDF_DRIVER_CONFIG {
     //
     ULONG DriverPoolTag;
 
-} WDF_DRIVER_CONFIG, * PWDF_DRIVER_CONFIG;
+} WDF_DRIVER_CONFIG, *PWDF_DRIVER_CONFIG;
 
 typedef
 NTSTATUS
@@ -431,5 +431,20 @@ NTSTATUS
     WDFDRIVER* Driver
     );
 
+//
+// WDF Function: WdfDeviceCreate
+//
+typedef
+NTSTATUS
+(*PFN_WDFDEVICECREATE)(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _Inout_
+    PWDFDEVICE_INIT* DeviceInit,
+    _In_opt_
+    PWDF_OBJECT_ATTRIBUTES DeviceAttributes,
+    _Out_
+    WDFDEVICE* Device
+    );
 
 #endif

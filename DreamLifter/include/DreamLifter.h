@@ -47,6 +47,18 @@ typedef struct _DRIVER_INSTANCE {
     PFN_WDF_DRIVER_UNLOAD          DriverUnload;
 } DRIVER_INSTANCE, *PDRIVER_INSTANCE;
 
+typedef struct _DREAMLIFTER_DEVICE_INIT {
+    // This can be further extended
+    PFN_WDF_DEVICE_PREPARE_HARDWARE EvtDevicePrepareHardware;
+} DREAMLIFTER_DEVICE_INIT, *PDREAMLIFTER_DEVICE_INIT;
+
+typedef struct _DREAMLIFTER_DEVICE {
+    // This can be further extended
+    PFN_WDF_DEVICE_PREPARE_HARDWARE EvtDevicePrepareHardware;
+    PCWDF_OBJECT_CONTEXT_TYPE_INFO DeviceContextInfo;
+    PVOID DeviceContext;
+} DREAMLIFTER_DEVICE, *PDREAMLIFTER_DEVICE;
+
 NTSTATUS DlWdfCreateDriver(
     _In_
     PWDF_DRIVER_GLOBALS DriverGlobals,
@@ -60,6 +72,26 @@ NTSTATUS DlWdfCreateDriver(
     PWDF_DRIVER_CONFIG DriverConfig,
     _Out_opt_
     WDFDRIVER* Driver
+);
+
+void DlWdfDeviceInitSetPnpPowerEventCallbacks(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    PVOID DeviceInit,
+    _In_
+    PWDF_PNPPOWER_EVENT_CALLBACKS PnpPowerEventCallbacks
+);
+
+NTSTATUS DlWdfDeviceCreate(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _Inout_
+    PWDFDEVICE_INIT* DeviceInit,
+    _In_opt_
+    PWDF_OBJECT_ATTRIBUTES DeviceAttributes,
+    _Out_
+    WDFDEVICE* Device
 );
 
 #endif
