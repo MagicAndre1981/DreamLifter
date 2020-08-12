@@ -61,12 +61,19 @@ typedef struct _DREAMLIFTER_DEVICE_INIT {
     PFN_WDF_DEVICE_PREPARE_HARDWARE EvtDevicePrepareHardware;
 } DREAMLIFTER_DEVICE_INIT, *PDREAMLIFTER_DEVICE_INIT;
 
+typedef struct _DREAMLIFTER_UCM_MANAGER {
+    ULONGLONG ConnectorId;
+    UCM_CONNECTOR_TYPEC_CONFIG TypeCConfig;
+    UCM_CONNECTOR_PD_CONFIG PdConfig;
+} DREAMLIFTER_UCM_DEVICE, *PDREAMLIFTER_UCM_DEVICE;
+
 typedef struct _DREAMLIFTER_DEVICE {
     // This can be further extended
     PFN_WDF_DEVICE_PREPARE_HARDWARE EvtDevicePrepareHardware;
     PCWDF_OBJECT_CONTEXT_TYPE_INFO DeviceContextInfo;
     PVOID DeviceContext;
     HANDLE SerializationMutex;
+    PDREAMLIFTER_UCM_DEVICE UcmManagerInfo;
 } DREAMLIFTER_DEVICE, *PDREAMLIFTER_DEVICE;
 
 NTSTATUS DlWdfCreateDriver(
@@ -289,6 +296,28 @@ VOID DlWdfWorkItemEnqueue(
 
 DWORD WINAPI DlWdfWorkItemThreadWorker(
     LPVOID lpParam
+);
+
+NTSTATUS DlUcmInitializeDevice(
+    _In_
+    PUCM_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFDEVICE WdfDevice,
+    _In_
+    PUCM_MANAGER_CONFIG Config
+);
+
+NTSTATUS DlUcmCreateConnector(
+    _In_
+    PUCM_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFDEVICE WdfDevice,
+    _In_
+    PUCM_CONNECTOR_CONFIG Config,
+    _In_opt_
+    PWDF_OBJECT_ATTRIBUTES Attributes,
+    _Out_
+    UCMCONNECTOR* Connector
 );
 
 #endif

@@ -61,6 +61,9 @@ int main(int argc, char* argv[])
     g_WdfFunctions0215[WdfWorkItemGetParentObjectTableIndex] = (PVOID) DlWdfWorkItemGetParentObject;
     g_WdfFunctions0215[WdfWorkItemEnqueueTableIndex] = (PVOID) DlWdfWorkItemThreadWorker;
 
+    g_UcmFunctions0100[UcmInitializeDeviceTableIndex] = (PVOID) DlUcmInitializeDevice;
+    g_UcmFunctions0100[UcmConnectorCreateTableIndex] = (PVOID) DlUcmCreateConnector;
+
     // Prepare loader interface
     RtlZeroMemory(&g_loaderInterface, sizeof(WDF_LOADER_INTERFACE));
     g_loaderInterface.LoaderInterfaceSize = sizeof(WDF_LOADER_INTERFACE);
@@ -74,7 +77,7 @@ int main(int argc, char* argv[])
     hTycLibrary = LoadLibraryA("C:\\Windows\\DreamLifter\\TyC.dll");
     if (hTycLibrary == NULL)
     {
-        printf("[ERROR] Unload to load TyC.dll, error %d\n", GetLastError());
+        printf("[ERROR] Unable to load TyC.dll, error %d\n", GetLastError());
         err = ENFILE;
         goto exit;
     }
@@ -108,7 +111,20 @@ int main(int argc, char* argv[])
             err = RtlNtStatusToDosError(status);
             goto cleanup;
         }
-        // Start main loop here
+        // Simulate PnP PrepareDevice event
+        if (g_pDevice != NULL) {
+            if (g_pDevice->EvtDevicePrepareHardware != NULL) {
+                WDFCMRESLIST EmptyList = NULL;
+                status = g_pDevice->EvtDevicePrepareHardware((WDFDEVICE)g_pDevice, EmptyList, EmptyList);
+                if (!NT_SUCCESS(status)) {
+                    printf("[ERROR] EvtDevicePrepareHardware failed: 0x%x\n", status);
+                    err = RtlNtStatusToDosError(status);
+                    goto cleanup;
+                }
+            }
+
+            // Start main loop and hold
+        }
     }
 
     // Cleanup

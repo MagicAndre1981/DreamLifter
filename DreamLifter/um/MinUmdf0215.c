@@ -69,7 +69,7 @@ void DlWdfDeviceInitSetPnpPowerEventCallbacks(
     UNREFERENCED_PARAMETER(DriverGlobals);
 
     if (DeviceInit != NULL && PnpPowerEventCallbacks != NULL) {
-        ((PDREAMLIFTER_DEVICE_INIT)DeviceInit)->EvtDevicePrepareHardware = PnpPowerEventCallbacks->EvtDevicePrepareHardware;
+        ((PDREAMLIFTER_DEVICE_INIT) DeviceInit)->EvtDevicePrepareHardware = PnpPowerEventCallbacks->EvtDevicePrepareHardware;
     }
 }
 
@@ -100,7 +100,7 @@ NTSTATUS DlWdfDeviceCreate(
     }
 
     RtlZeroMemory(pDevice, sizeof(DREAMLIFTER_DEVICE));
-    pDevice->EvtDevicePrepareHardware = ((PDREAMLIFTER_DEVICE_INIT) DeviceInit)->EvtDevicePrepareHardware;
+    pDevice->EvtDevicePrepareHardware = ((PDREAMLIFTER_DEVICE_INIT) *DeviceInit)->EvtDevicePrepareHardware;
     if (DeviceAttributes->ContextTypeInfo != NULL) {
         pDevice->DeviceContextInfo = DeviceAttributes->ContextTypeInfo;
         contextSize = (DeviceAttributes->ContextSizeOverride > DeviceAttributes->ContextTypeInfo->ContextSize) ? 
