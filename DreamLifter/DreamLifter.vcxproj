@@ -334,13 +334,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DreamLifter.c" />
+    <ClCompile Include="UcmCx\MinUcmCx0100.c" />
     <ClCompile Include="um\MinUmdf0215.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\DreamLifter.h" />
     <ClInclude Include="include\MinUmdfLoaderInterface.h" />
+    <ClInclude Include="include\wdf\UcmCx\MinUcmCx0100.h" />
+    <ClInclude Include="include\wdf\UcmCx\UcmFuncEnums0100.h" />
     <ClInclude Include="include\wdf\um\MinUmdf0215.h" />
-    <ClInclude Include="include\wdf\um\UcmFuncEnums0100.h" />
     <ClInclude Include="include\wdf\um\UmdfDriverEnums0215.h" />
     <ClInclude Include="resource.h" />
   </ItemGroup>

@@ -14,7 +14,8 @@
 #include <wdf/um/UmdfDriverEnums0215.h>
 #include <wdf/um/MinUmdf0215.h>
 
-#include <wdf/um/UcmFuncEnums0100.h>
+#include <wdf/UcmCx/UcmFuncEnums0100.h>
+#include <wdf/UcmCx/MinUcmCx0100.h>
 
 #define GUEST_DRIVER_NAME "DreamLifterGuest"
 

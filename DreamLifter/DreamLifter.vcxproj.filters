@@ -19,6 +19,12 @@
     <Filter Include="Source Files\UMDF">
       <UniqueIdentifier>{2a02a4cd-2bf4-416c-9e48-7d37be3c33b3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\UcmCx">
+      <UniqueIdentifier>{33ddbcff-23c5-4aea-b161-ba0c81e9efac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\UcmCx">
+      <UniqueIdentifier>{5f861f54-c885-4cfe-8477-1db8d0f8a43e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\MinUmdfLoaderInterface.h">
@@ -30,14 +36,17 @@
     <ClInclude Include="include\wdf\um\UmdfDriverEnums0215.h">
       <Filter>Header Files\UMDF</Filter>
     </ClInclude>
-    <ClInclude Include="include\wdf\um\UcmFuncEnums0100.h">
-      <Filter>Header Files\UMDF</Filter>
-    </ClInclude>
     <ClInclude Include="include\wdf\um\MinUmdf0215.h">
       <Filter>Header Files\UMDF</Filter>
     </ClInclude>
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\wdf\UcmCx\MinUcmCx0100.h">
+      <Filter>Header Files\UcmCx</Filter>
+    </ClInclude>
+    <ClInclude Include="include\wdf\UcmCx\UcmFuncEnums0100.h">
+      <Filter>Header Files\UcmCx</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -46,6 +55,9 @@
     </ClCompile>
     <ClCompile Include="um\MinUmdf0215.c">
       <Filter>Source Files\UMDF</Filter>
+    </ClCompile>
+    <ClCompile Include="UcmCx\MinUcmCx0100.c">
+      <Filter>Source Files\UcmCx</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
