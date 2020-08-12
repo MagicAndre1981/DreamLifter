@@ -48,6 +48,7 @@ int main(int argc, char* argv[])
     g_WdfFunctions0215[WdfSpinLockCreateTableIndex] = (PVOID) DlWdfSpinLockCreate;
     g_WdfFunctions0215[WdfSpinLockAcquireTableIndex] = (PVOID) DlWdfSpinLockAcquire;
     g_WdfFunctions0215[WdfSpinLockReleaseTableIndex] = (PVOID) DlWdfSpinLockRelease;
+    g_WdfFunctions0215[WdfRequestCompleteTableIndex] = (PVOID) DlWdfRequestComplete;
 
     // Prepare loader interface
     RtlZeroMemory(&g_loaderInterface, sizeof(WDF_LOADER_INTERFACE));

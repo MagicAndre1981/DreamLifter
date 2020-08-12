@@ -6,6 +6,8 @@
 DECLARE_HANDLE(WDFOBJECT);
 DECLARE_HANDLE(WDFDEVICE);
 
+DECLARE_HANDLE(WDFREQUEST);
+
 DECLARE_HANDLE(WDFSPINLOCK);
 
 DECLARE_HANDLE(WDFIORESREQLIST);
@@ -498,6 +500,21 @@ VOID
     _Releases_lock_(_Curr_)
     _IRQL_restores_
     WDFSPINLOCK SpinLock
+    );
+
+//
+// WDF Function: WdfRequestComplete
+//
+typedef
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+(*PFN_WDFREQUESTCOMPLETE)(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFREQUEST Request,
+    _In_
+    NTSTATUS Status
     );
 
 #endif

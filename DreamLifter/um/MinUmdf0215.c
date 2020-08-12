@@ -216,3 +216,17 @@ void DlWdfSpinLockRelease(
     pSpinLock = (PDREAMLIFTER_SPINLOCK)SpinLock;
     pSpinLock->Exclusion = 1;
 }
+
+void DlWdfRequestComplete(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFREQUEST Request,
+    _In_
+    NTSTATUS Status
+)
+{
+    UNREFERENCED_PARAMETER(DriverGlobals);
+    
+    printf("[INFO] Completing request %p with status 0x%x. This is currently a no-op\n", Request, Status);
+}

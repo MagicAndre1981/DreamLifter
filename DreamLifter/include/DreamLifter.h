@@ -137,4 +137,13 @@ void DlWdfSpinLockRelease(
     WDFSPINLOCK SpinLock
 );
 
+void DlWdfRequestComplete(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFREQUEST Request,
+    _In_
+    NTSTATUS Status
+);
+
 #endif
