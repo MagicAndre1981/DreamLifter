@@ -22,7 +22,7 @@ typedef struct _WDF_BIND_INFO {
     PWCHAR             Component;
     WDF_VERSION        Version;
     ULONG              FuncCount;
-    PVOID              FuncTable;
+    PVOID              *FuncTable;
     PVOID              Module;
 } WDF_BIND_INFO, * PWDF_BIND_INFO;
 
@@ -32,7 +32,7 @@ typedef struct _WDF_CLASS_EXTENSION {
     ULONG MajorVersion;
     ULONG MinorVersion;
     ULONG FuncCount;
-    void* FuncTable;
+    PVOID *FuncTable;
     ULONG Pad0;
     void* GlobalsPtr;
     void* CustomizedEntryPoint;

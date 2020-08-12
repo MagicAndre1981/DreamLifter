@@ -48,10 +48,10 @@ int main(int argc, char* argv[])
     RtlInitUnicodeString(&g_FakeRegPath, L"");
 
     // Load TyC via LoadLibrary
-    hTycLibrary = LoadLibraryW(L"TyC.dll");
+    hTycLibrary = LoadLibraryA("C:\\Windows\\DreamLifter\\TyC.dll");
     if (hTycLibrary == NULL)
     {
-        printf("Unload to load TyC.dll\n");
+        printf("Unload to load TyC.dll, error %d\n", GetLastError());
         err = ENFILE;
         goto exit;
     }
@@ -101,7 +101,7 @@ NTSTATUS DlUmBindVersionLib(
     {
         if (BindInfo->FuncCount == WdfFunctionTableNumEntries)
         {
-            BindInfo->FuncTable = g_WdfFunctions0215;
+            *BindInfo->FuncTable = g_WdfFunctions0215;
         }
         else
         {
@@ -127,10 +127,10 @@ NTSTATUS DlUmBindExtensionClass(
     }
 
     // Bind to the stub class extension implementation
-    printf("Request load WDF extension %s %d.%d\n", ClassExtensionInfo->ExtensionName, ClassExtensionInfo->MajorVersion, ClassExtensionInfo->MinorVersion);
     if (strcmp("UcmCx", ClassExtensionInfo->ExtensionName))
     {
-        ClassExtensionInfo->FuncTable = g_UcmFunctions0100;
+        printf("Request load WDF UcmCx extension version %d.%d\n", ClassExtensionInfo->MajorVersion, ClassExtensionInfo->MinorVersion);
+        *ClassExtensionInfo->FuncTable = g_UcmFunctions0100;
         return STATUS_SUCCESS;
     }
 
