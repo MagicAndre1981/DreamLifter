@@ -63,7 +63,16 @@ int main(int argc, char* argv[])
 
     g_UcmFunctions0100[UcmInitializeDeviceTableIndex] = (PVOID) DlUcmInitializeDevice;
     g_UcmFunctions0100[UcmConnectorCreateTableIndex] = (PVOID) DlUcmCreateConnector;
-
+    g_UcmFunctions0100[UcmConnectorTypeCAttachTableIndex] = (PVOID) DlUcmConnectorTypeCAttach;
+    g_UcmFunctions0100[UcmConnectorTypeCDetachTableIndex] = (PVOID) DlUcmConnectorTypeCDetach;
+    g_UcmFunctions0100[UcmConnectorTypeCCurrentAdChangedTableIndex] = (PVOID) DlUcmConnectorTypeCCurrentAdChanged;
+    g_UcmFunctions0100[UcmConnectorPdSourceCapsTableIndex] = (PVOID) DlUcmConnectorPdSourceCaps;
+    g_UcmFunctions0100[UcmConnectorPdPartnerSourceCapsTableIndex] = (PVOID) DlUcmConnectorPdPartnerSourceCaps;
+    g_UcmFunctions0100[UcmConnectorPdConnectionStateChangedTableIndex] = (PVOID) DlUcmConnectorPdConnectionStateChanged;
+    g_UcmFunctions0100[UcmConnectorChargingStateChangedTableIndex] = (PVOID) DlUcmConnectorChargingStateChanged;
+    g_UcmFunctions0100[UcmConnectorDataDirectionChangedTableIndex] = (PVOID) DlUcmConnectorDataDirectionChanged;
+    g_UcmFunctions0100[UcmConnectorPowerDirectionChangedTableIndex] = (PVOID) DlUcmConnectorPowerDirectionChanged;
+         
     // Prepare loader interface
     RtlZeroMemory(&g_loaderInterface, sizeof(WDF_LOADER_INTERFACE));
     g_loaderInterface.LoaderInterfaceSize = sizeof(WDF_LOADER_INTERFACE);
@@ -126,10 +135,7 @@ int main(int argc, char* argv[])
             // Start main loop and hold
             while (TRUE)
             {
-                MSG msg;
-
-                GetMessage(&msg, NULL, 0, 0);
-                DispatchMessage(&msg);
+                Sleep(16);
             }
         }
     }

@@ -63,8 +63,24 @@ typedef struct _DREAMLIFTER_DEVICE_INIT {
 
 typedef struct _DREAMLIFTER_UCM_MANAGER {
     ULONGLONG ConnectorId;
+    BOOL Connected;
+
     UCM_CONNECTOR_TYPEC_CONFIG TypeCConfig;
     UCM_CONNECTOR_PD_CONFIG PdConfig;
+
+    UCM_CHARGING_STATE ChargingState;
+    UCM_PD_CONN_STATE PdConnState;
+    UCM_TYPEC_CURRENT PowerCurrent;
+
+    UCM_TYPEC_PARTNER Partner;
+    UCM_DATA_ROLE DataRole;
+    UCM_POWER_ROLE PowerRole;
+
+    UCM_PD_REQUEST_DATA_OBJECT PdRdo;
+    UCM_PD_POWER_DATA_OBJECT SourcePdos[256];
+    UCHAR SourcePdoCount;
+    UCM_PD_POWER_DATA_OBJECT PartnerPdos[256];
+    UCHAR PartnerPdoCount;
 } DREAMLIFTER_UCM_DEVICE, *PDREAMLIFTER_UCM_DEVICE;
 
 typedef struct _DREAMLIFTER_DEVICE {
@@ -316,6 +332,93 @@ NTSTATUS DlUcmCreateConnector(
     PWDF_OBJECT_ATTRIBUTES Attributes,
     _Out_
     UCMCONNECTOR* Connector
+);
+
+NTSTATUS DlUcmConnectorTypeCAttach(
+    _In_
+    PUCM_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    UCMCONNECTOR Connector,
+    _In_
+    PUCM_CONNECTOR_TYPEC_ATTACH_PARAMS Params
+);
+
+NTSTATUS DlUcmConnectorTypeCDetach(
+    _In_
+    PUCM_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    UCMCONNECTOR Connector
+);
+
+NTSTATUS DlUcmConnectorTypeCCurrentAdChanged(
+    _In_
+    PUCM_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    UCMCONNECTOR Connector,
+    _In_
+    UCM_TYPEC_CURRENT CurrentAdvertisement
+);
+
+NTSTATUS DlUcmConnectorPdSourceCaps(
+    _In_
+    PUCM_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    UCMCONNECTOR Connector,
+    _In_
+    UCM_PD_POWER_DATA_OBJECT Pdos[],
+    _In_
+    UCHAR PdoCount
+);
+
+NTSTATUS DlUcmConnectorPdPartnerSourceCaps(
+    _In_
+    PUCM_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    UCMCONNECTOR Connector,
+    _In_
+    UCM_PD_POWER_DATA_OBJECT Pdos[],
+    _In_
+    UCHAR PdoCount
+);
+
+NTSTATUS DlUcmConnectorPdConnectionStateChanged(
+    _In_
+    PUCM_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    UCMCONNECTOR Connector,
+    _In_
+    PUCM_CONNECTOR_PD_CONN_STATE_CHANGED_PARAMS Params
+);
+
+NTSTATUS DlUcmConnectorChargingStateChanged(
+    _In_
+    PUCM_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    UCMCONNECTOR Connector,
+    _In_
+    UCM_CHARGING_STATE ChargingState
+);
+
+NTSTATUS DlUcmConnectorDataDirectionChanged(
+    _In_
+    PUCM_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    UCMCONNECTOR Connector,
+    _In_
+    BOOLEAN Success,
+    _In_
+    UCM_DATA_ROLE CurrentDataRole
+);
+
+NTSTATUS DlUcmConnectorPowerDirectionChanged(
+    _In_
+    PUCM_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    UCMCONNECTOR Connector,
+    _In_
+    BOOLEAN Success,
+    _In_
+    UCM_POWER_ROLE CurrentPowerRole
 );
 
 #endif

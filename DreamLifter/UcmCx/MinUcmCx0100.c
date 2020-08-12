@@ -70,15 +70,259 @@ NTSTATUS DlUcmCreateConnector(
     RtlCopyMemory((PVOID) &pDevice->UcmManagerInfo->TypeCConfig, (PVOID)Config->TypeCConfig, sizeof(UCM_CONNECTOR_TYPEC_CONFIG));
     *Connector = (UCMCONNECTOR)pDevice->UcmManagerInfo;
 
-    printf("[INFO] Type-C connector summary: supported modes 0x%x, power source capabilities 0x%x, analog audio 0x%x \n",
+    printf("[INFO] Type-C connector summary: supported modes 0x%x, power source capabilities 0x%x, analog audio 0x%x\n",
         pDevice->UcmManagerInfo->TypeCConfig.SupportedOperatingModes,
         pDevice->UcmManagerInfo->TypeCConfig.SupportedPowerSourcingCapabilities,
         pDevice->UcmManagerInfo->TypeCConfig.AudioAccessoryCapable
     );
 
-    printf("[INFO] USB-PD summary: support 0x%x, suppoted power roles 0x%x \n",
+    printf("[INFO] USB-PD summary: support 0x%x, suppoted power roles 0x%x\n",
         pDevice->UcmManagerInfo->PdConfig.IsSupported,
         pDevice->UcmManagerInfo->PdConfig.SupportedPowerRoles
+    );
+
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS DlUcmConnectorTypeCAttach(
+    _In_
+    PUCM_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    UCMCONNECTOR Connector,
+    _In_
+    PUCM_CONNECTOR_TYPEC_ATTACH_PARAMS Params
+)
+{
+    PDREAMLIFTER_UCM_DEVICE pConnector = (PDREAMLIFTER_UCM_DEVICE) Connector;
+
+    UNREFERENCED_PARAMETER(DriverGlobals);
+
+    if (pConnector != NULL) {
+        pConnector->Connected = TRUE;
+        pConnector->ChargingState = Params->ChargingState;
+        pConnector->PowerCurrent = Params->CurrentAdvertisement;
+        pConnector->Partner = Params->Partner;
+    }
+
+    printf("[INFO] Ucm reports Type-C attached. Charging state 0x%x, current 0x%x, partner 0x%x\n",
+        pConnector->ChargingState,
+        pConnector->PowerCurrent,
+        pConnector->Partner
+    );
+
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS DlUcmConnectorTypeCDetach(
+    _In_
+    PUCM_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    UCMCONNECTOR Connector
+)
+{
+    PDREAMLIFTER_UCM_DEVICE pConnector = (PDREAMLIFTER_UCM_DEVICE)Connector;
+
+    UNREFERENCED_PARAMETER(DriverGlobals);
+
+    if (pConnector != NULL) {
+        pConnector->Connected = FALSE;
+
+        pConnector->ChargingState = UcmChargingStateInvalid;
+        pConnector->PdConnState = UcmPdConnStateInvalid;
+        pConnector->PowerCurrent = UcmTypeCCurrentInvalid; 
+
+        pConnector->Partner = UcmTypeCPartnerInvalid;
+        pConnector->PowerRole = UcmPowerRoleInvalid;
+        pConnector->DataRole = UcmDataRoleInvalid;
+
+        pConnector->SourcePdoCount = 0;
+        pConnector->PartnerPdoCount = 0;
+        RtlZeroMemory(pConnector->SourcePdos, sizeof(pConnector->SourcePdos));
+        RtlZeroMemory(pConnector->PartnerPdos, sizeof(pConnector->PartnerPdos));
+        RtlZeroMemory(&pConnector->PdRdo, sizeof(UCM_PD_REQUEST_DATA_OBJECT));
+    }
+
+    printf("[INFO] Ucm reports Type-C detached\n");
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS DlUcmConnectorTypeCCurrentAdChanged(
+    _In_
+    PUCM_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    UCMCONNECTOR Connector,
+    _In_
+    UCM_TYPEC_CURRENT CurrentAdvertisement
+)
+{
+    PDREAMLIFTER_UCM_DEVICE pConnector = (PDREAMLIFTER_UCM_DEVICE)Connector;
+
+    UNREFERENCED_PARAMETER(DriverGlobals);
+
+    if (pConnector != NULL) {
+        pConnector->PowerCurrent = CurrentAdvertisement;
+    }
+
+    printf("[INFO] Ucm reports power current change. Current 0x%x\n",
+        pConnector->PowerCurrent
+    );
+
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS DlUcmConnectorPdSourceCaps(
+    _In_
+    PUCM_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    UCMCONNECTOR Connector,
+    _In_
+    UCM_PD_POWER_DATA_OBJECT Pdos[],
+    _In_
+    UCHAR PdoCount
+)
+{
+    PDREAMLIFTER_UCM_DEVICE pConnector = (PDREAMLIFTER_UCM_DEVICE)Connector;
+
+    UNREFERENCED_PARAMETER(DriverGlobals);
+
+    if (pConnector != NULL) {
+        pConnector->SourcePdoCount = PdoCount;
+        RtlZeroMemory(pConnector->SourcePdos, sizeof(pConnector->SourcePdos));
+        RtlCopyMemory(pConnector->SourcePdos, Pdos, sizeof(UCM_PD_POWER_DATA_OBJECT) * PdoCount);
+    }
+
+    printf("[INFO] Ucm receives new source power capabilities\n");
+
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS DlUcmConnectorPdPartnerSourceCaps(
+    _In_
+    PUCM_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    UCMCONNECTOR Connector,
+    _In_
+    UCM_PD_POWER_DATA_OBJECT Pdos[],
+    _In_
+    UCHAR PdoCount
+)
+{
+    PDREAMLIFTER_UCM_DEVICE pConnector = (PDREAMLIFTER_UCM_DEVICE)Connector;
+
+    UNREFERENCED_PARAMETER(DriverGlobals);
+
+    if (pConnector != NULL) {
+        pConnector->PartnerPdoCount = PdoCount;
+        RtlZeroMemory(pConnector->PartnerPdos, sizeof(pConnector->PartnerPdos));
+        RtlCopyMemory(pConnector->PartnerPdos, Pdos, sizeof(UCM_PD_POWER_DATA_OBJECT) * PdoCount);
+    }
+
+    printf("[INFO] Ucm receives new partner power capabilities\n");
+
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS DlUcmConnectorPdConnectionStateChanged(
+    _In_
+    PUCM_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    UCMCONNECTOR Connector,
+    _In_
+    PUCM_CONNECTOR_PD_CONN_STATE_CHANGED_PARAMS Params
+)
+{
+    PDREAMLIFTER_UCM_DEVICE pConnector = (PDREAMLIFTER_UCM_DEVICE)Connector;
+
+    UNREFERENCED_PARAMETER(DriverGlobals);
+
+    if (pConnector != NULL) {
+        pConnector->Connected = TRUE;
+        pConnector->ChargingState = Params->ChargingState;
+        pConnector->PdConnState = Params->PdConnState;
+        RtlCopyMemory(&pConnector->PdRdo, &Params->Rdo, sizeof(UCM_PD_REQUEST_DATA_OBJECT));
+    }
+
+    printf("[INFO] Ucm reports PD state change. PD state 0x%x, Charging state 0x%x\n",
+        pConnector->PdConnState,
+        pConnector->ChargingState
+    );
+
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS DlUcmConnectorChargingStateChanged(
+    _In_
+    PUCM_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    UCMCONNECTOR Connector,
+    _In_
+    UCM_CHARGING_STATE ChargingState
+)
+{
+    PDREAMLIFTER_UCM_DEVICE pConnector = (PDREAMLIFTER_UCM_DEVICE)Connector;
+
+    UNREFERENCED_PARAMETER(DriverGlobals);
+
+    if (pConnector != NULL) {
+        pConnector->ChargingState = ChargingState;
+    }
+
+    printf("[INFO] Ucm reports charging state change. Charging State 0x%x\n",
+        pConnector->ChargingState
+    );
+
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS DlUcmConnectorDataDirectionChanged(
+    _In_
+    PUCM_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    UCMCONNECTOR Connector,
+    _In_
+    BOOLEAN Success,
+    _In_
+    UCM_DATA_ROLE CurrentDataRole
+)
+{
+    PDREAMLIFTER_UCM_DEVICE pConnector = (PDREAMLIFTER_UCM_DEVICE)Connector;
+
+    UNREFERENCED_PARAMETER(DriverGlobals);
+
+    if (pConnector != NULL) {
+        pConnector->DataRole = CurrentDataRole;
+    }
+
+    printf("[INFO] Ucm reports data role change. Current Data Role 0x%x. Change state 0x%x.\n",
+        pConnector->DataRole,
+        Success
+    );
+
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS DlUcmConnectorPowerDirectionChanged(
+    _In_
+    PUCM_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    UCMCONNECTOR Connector,
+    _In_
+    BOOLEAN Success,
+    _In_
+    UCM_POWER_ROLE CurrentPowerRole
+)
+{
+    PDREAMLIFTER_UCM_DEVICE pConnector = (PDREAMLIFTER_UCM_DEVICE)Connector;
+
+    UNREFERENCED_PARAMETER(DriverGlobals);
+
+    if (pConnector != NULL) {
+        pConnector->PowerRole = CurrentPowerRole;
+    }
+
+    printf("[INFO] Ucm reports power role change. Current Power Role 0x%x. Change state 0x%x.\n",
+        pConnector->PowerRole,
+        Success
     );
 
     return STATUS_SUCCESS;
