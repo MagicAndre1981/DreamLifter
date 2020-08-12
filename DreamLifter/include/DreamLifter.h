@@ -10,7 +10,10 @@
 #include <winternl.h>
 
 #include <MinUmdfLoaderInterface.h>
+
 #include <wdf/um/UmdfDriverEnums0215.h>
+#include <wdf/um/MinUmdf0215.h>
+
 #include <wdf/um/UcmFuncEnums0100.h>
 
 #define GUEST_DRIVER_NAME "DreamLifterGuest"
@@ -34,5 +37,29 @@ NTSTATUS DlUmBindExtensionClass(
 );
 
 NTSTATUS DlWdfFunctionImplStub();
+
+// Begin DreamLifter WDF implementation
+typedef struct _DRIVER_INSTANCE {
+    int Unused; // Keep compatibility
+    PFN_WDF_OBJECT_CONTEXT_CLEANUP DriverCleanupCallback;
+    PFN_WDF_OBJECT_CONTEXT_DESTROY DriverDestroyCallback;
+    PFN_WDF_DRIVER_DEVICE_ADD      DriverDeviceAdd;
+    PFN_WDF_DRIVER_UNLOAD          DriverUnload;
+} DRIVER_INSTANCE, *PDRIVER_INSTANCE;
+
+NTSTATUS DlWdfCreateDriver(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    PDRIVER_OBJECT DriverObject,
+    _In_
+    PCUNICODE_STRING RegistryPath,
+    _In_opt_
+    PWDF_OBJECT_ATTRIBUTES DriverAttributes,
+    _In_
+    PWDF_DRIVER_CONFIG DriverConfig,
+    _Out_opt_
+    WDFDRIVER* Driver
+);
 
 #endif

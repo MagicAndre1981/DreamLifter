@@ -16,6 +16,9 @@
     <Filter Include="Header Files\UMDF">
       <UniqueIdentifier>{540c3b66-5960-4346-9512-867bddd6ebf9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\UMDF">
+      <UniqueIdentifier>{2a02a4cd-2bf4-416c-9e48-7d37be3c33b3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\MinUmdfLoaderInterface.h">
@@ -30,10 +33,16 @@
     <ClInclude Include="include\wdf\um\UcmFuncEnums0100.h">
       <Filter>Header Files\UMDF</Filter>
     </ClInclude>
+    <ClInclude Include="include\wdf\um\MinUmdf0215.h">
+      <Filter>Header Files\UMDF</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DreamLifter.c">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="um\MinUmdf0215.c">
+      <Filter>Source Files\UMDF</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

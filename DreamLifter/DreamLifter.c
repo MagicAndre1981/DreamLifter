@@ -7,6 +7,7 @@ PVOID g_UcmFunctions0100[UcmFunctionTableNumEntries];
 
 WDF_LOADER_INTERFACE g_loaderInterface;
 UNICODE_STRING g_FakeRegPath;
+PDRIVER_INSTANCE g_pDriverInstance;
 
 int main(int argc, char* argv[])
 {
@@ -38,6 +39,9 @@ int main(int argc, char* argv[])
         g_UcmFunctions0100[i] = (PVOID) DlWdfFunctionImplStub;
     }
 
+    // Now fills in the implementation
+    g_WdfFunctions0215[WdfDriverCreateTableIndex] = (PVOID) DlWdfCreateDriver;
+
     // Prepare loader interface
     RtlZeroMemory(&g_loaderInterface, sizeof(WDF_LOADER_INTERFACE));
     g_loaderInterface.LoaderInterfaceSize = sizeof(WDF_LOADER_INTERFACE);
@@ -68,6 +72,26 @@ int main(int argc, char* argv[])
     // Let's kick this in
     status = pTycEntry(&g_loaderInterface, NULL, NULL, &g_FakeRegPath);
     printf("DriverEntry returns, result 0x%x\n", status);
+
+    if (!NT_SUCCESS(status)) {
+        printf("DriverEntry failed: 0x%x\n", status);
+        err = RtlNtStatusToDosError(status);
+        goto exit;
+    }
+
+    // TODO: Call add device event
+
+    // Cleanup
+    if (g_pDriverInstance != NULL) {
+        if (g_pDriverInstance->DriverCleanupCallback != NULL) {
+            g_pDriverInstance->DriverCleanupCallback((WDFOBJECT) g_pDriverInstance); 
+        }
+        if (g_pDriverInstance->DriverUnload != NULL) {
+            g_pDriverInstance->DriverUnload((WDFDRIVER) g_pDriverInstance);
+        }
+
+        free(g_pDriverInstance);
+    }
     
 exit:
     return err;
