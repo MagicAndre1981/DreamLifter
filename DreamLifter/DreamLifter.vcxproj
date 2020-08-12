@@ -338,6 +338,8 @@
   <ItemGroup>
     <ClInclude Include="include\DreamLifter.h" />
     <ClInclude Include="include\MinUmdfLoaderInterface.h" />
+    <ClInclude Include="include\wdf\um\UcmFuncEnums0100.h" />
+    <ClInclude Include="include\wdf\um\UmdfDriverEnums0215.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
