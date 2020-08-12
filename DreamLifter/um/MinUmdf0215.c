@@ -127,6 +127,7 @@ NTSTATUS DlWdfDeviceCreate(
     if (pDevice->SerializationMutex == NULL)
     {
         printf("[ERROR] CreateMutex error: %d\n", GetLastError());
+        free(pDevice);
         return STATUS_INSUFFICIENT_RESOURCES;
     }
 
@@ -361,17 +362,17 @@ NTSTATUS DlWdfTimerCreate(
     }
 
     pTimer = malloc(sizeof(DREAMLIFTER_TIMER));
-    RtlZeroMemory(pTimer, sizeof(DREAMLIFTER_TIMER));
-
     if (pTimer == NULL) {
         OutputDebugString(L"[ERROR] Failed to allocate timer\n");
         return STATUS_INSUFFICIENT_RESOURCES;
     }
 
+    RtlZeroMemory(pTimer, sizeof(DREAMLIFTER_TIMER));
     if (Config->AutomaticSerialization == TRUE
         && Attributes->SynchronizationScope != WdfSynchronizationScopeInheritFromParent
         && Attributes->SynchronizationScope != WdfSynchronizationScopeDevice) {
         OutputDebugString(L"[ERROR] The timer serialization mode is not yet supported\n");
+        free(pTimer);
         return STATUS_NOT_SUPPORTED;
     }
 
@@ -507,4 +508,104 @@ BOOLEAN DlWdfTimerStop(
     }
 
     return FALSE;
+}
+
+NTSTATUS DlWdfWorkItemCreate(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    PWDF_WORKITEM_CONFIG Config,
+    _In_
+    PWDF_OBJECT_ATTRIBUTES Attributes,
+    _Out_
+    WDFWORKITEM* WorkItem
+)
+{
+    PDREAMLIFTER_WORKITEM pWorkItem = NULL;
+
+    UNREFERENCED_PARAMETER(DriverGlobals);
+
+    if (Config == NULL || Attributes == NULL) {
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    pWorkItem = malloc(sizeof(DREAMLIFTER_WORKITEM));
+    if (pWorkItem == NULL) {
+        OutputDebugString(L"[ERROR] Failed to allocate workitem\n");
+        return STATUS_INSUFFICIENT_RESOURCES;
+    }
+
+    RtlZeroMemory(pWorkItem, sizeof(DREAMLIFTER_WORKITEM));
+    if (Config->AutomaticSerialization == TRUE
+        && Attributes->SynchronizationScope != WdfSynchronizationScopeInheritFromParent
+        && Attributes->SynchronizationScope != WdfSynchronizationScopeDevice) {
+        OutputDebugString(L"[ERROR] The timer serialization mode is not yet supported\n");
+        free(pWorkItem);
+        return STATUS_NOT_SUPPORTED;
+    }
+
+    pWorkItem->AutomaticSerialization = Config->AutomaticSerialization;
+    pWorkItem->EvtWorkItemFunc = Config->EvtWorkItemFunc;
+    pWorkItem->ParentObject = Attributes->ParentObject;
+
+    *WorkItem = (WDFWORKITEM)pWorkItem;
+
+    return STATUS_SUCCESS;
+}
+
+WDFOBJECT DlWdfWorkItemGetParentObject(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFWORKITEM WorkItem
+)
+{
+    UNREFERENCED_PARAMETER(DriverGlobals);
+
+    return (WDFOBJECT)((PDREAMLIFTER_WORKITEM)WorkItem)->ParentObject;
+}
+
+VOID DlWdfWorkItemEnqueue(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFWORKITEM WorkItem
+)
+{
+    PDREAMLIFTER_WORKITEM pWorkItem = (PDREAMLIFTER_WORKITEM) WorkItem;
+    DWORD AsyncThreadId = 0;
+
+    UNREFERENCED_PARAMETER(DriverGlobals);
+
+    if (pWorkItem != NULL) {
+        // Push things in a new thread
+        CreateThread(
+            NULL,
+            0,
+            DlWdfWorkItemThreadWorker,
+            pWorkItem,
+            0,
+            &AsyncThreadId
+        );
+    }
+}
+
+DWORD WINAPI DlWdfWorkItemThreadWorker(
+    LPVOID lpParam
+)
+{
+    PDREAMLIFTER_WORKITEM pWorkItem = (PDREAMLIFTER_WORKITEM) lpParam;
+
+    if (pWorkItem->AutomaticSerialization) {
+        // Take device mutex if needed
+        WaitForSingleObject(g_pDevice->SerializationMutex, INFINITE);
+    }
+
+    pWorkItem->EvtWorkItemFunc((WDFWORKITEM) pWorkItem);
+
+    if (pWorkItem->AutomaticSerialization) {
+        ReleaseMutex(g_pDevice->SerializationMutex);
+    }
+
+    return 0;
 }

@@ -18,6 +18,7 @@ DECLARE_HANDLE(WDFQUEUE);
 DECLARE_HANDLE(WDFKEY);
 
 DECLARE_HANDLE(WDFTIMER);
+DECLARE_HANDLE(WDFWORKITEM);
 
 typedef PVOID PDRIVER_OBJECT;
 typedef PVOID PDEVICE_OBJECT;
@@ -869,6 +870,65 @@ BOOLEAN
     WDFTIMER Timer,
     _In_
     BOOLEAN Wait
+    );
+
+typedef
+VOID
+EVT_WDF_WORKITEM(
+    _In_
+    WDFWORKITEM WorkItem
+);
+
+typedef EVT_WDF_WORKITEM* PFN_WDF_WORKITEM;
+
+typedef struct _WDF_WORKITEM_CONFIG {
+    ULONG            Size;
+    PFN_WDF_WORKITEM EvtWorkItemFunc;
+    BOOLEAN          AutomaticSerialization;
+} WDF_WORKITEM_CONFIG, * PWDF_WORKITEM_CONFIG;
+
+//
+// WDF Function: WdfWorkItemCreate
+//
+typedef
+_Must_inspect_result_
+_IRQL_requires_max_(DISPATCH_LEVEL)
+NTSTATUS
+(*PFN_WDFWORKITEMCREATE)(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    PWDF_WORKITEM_CONFIG Config,
+    _In_
+    PWDF_OBJECT_ATTRIBUTES Attributes,
+    _Out_
+    WDFWORKITEM* WorkItem
+    );
+
+//
+// WDF Function: WdfWorkItemGetParentObject
+//
+typedef
+_IRQL_requires_max_(DISPATCH_LEVEL)
+WDFOBJECT
+(*PFN_WDFWORKITEMGETPARENTOBJECT)(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFWORKITEM WorkItem
+    );
+
+//
+// WDF Function: WdfWorkItemEnqueue
+//
+typedef
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+(*PFN_WDFWORKITEMENQUEUE)(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFWORKITEM WorkItem
     );
 
 #endif

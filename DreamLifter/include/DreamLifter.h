@@ -253,4 +253,40 @@ BOOLEAN DlWdfTimerStop(
     BOOLEAN Wait
 );
 
+typedef struct _DREAMLIFTER_WORKITEM {
+    PFN_WDF_WORKITEM EvtWorkItemFunc;
+    BOOLEAN          AutomaticSerialization;
+    PVOID            ParentObject;
+
+} DREAMLIFTER_WORKITEM, *PDREAMLIFTER_WORKITEM;
+
+NTSTATUS DlWdfWorkItemCreate(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    PWDF_WORKITEM_CONFIG Config,
+    _In_
+    PWDF_OBJECT_ATTRIBUTES Attributes,
+    _Out_
+    WDFWORKITEM* WorkItem
+);
+
+WDFOBJECT DlWdfWorkItemGetParentObject(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFWORKITEM WorkItem
+);
+
+VOID DlWdfWorkItemEnqueue(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFWORKITEM WorkItem
+);
+
+DWORD WINAPI DlWdfWorkItemThreadWorker(
+    LPVOID lpParam
+);
+
 #endif
