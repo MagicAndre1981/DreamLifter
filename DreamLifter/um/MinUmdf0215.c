@@ -119,6 +119,17 @@ NTSTATUS DlWdfDeviceCreate(
         }
     }
 
+    pDevice->SerializationMutex = CreateMutex(
+        NULL,
+        FALSE,
+        NULL
+    );
+    if (pDevice->SerializationMutex == NULL)
+    {
+        printf("[ERROR] CreateMutex error: %d\n", GetLastError());
+        return STATUS_INSUFFICIENT_RESOURCES;
+    }
+
     *Device = (WDFDEVICE) pDevice;
     g_pDevice = pDevice;
     return STATUS_SUCCESS;
@@ -142,7 +153,7 @@ NTSTATUS DlWdfCreateDeviceInterface(
         return STATUS_INVALID_PARAMETER;
     }
 
-    printf("[INFO] Creating device interface {%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX}. This is currently a no-op",
+    printf("[INFO] Creating device interface {%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX}. This is currently a no-op\n",
         InterfaceClassGUID->Data1, InterfaceClassGUID->Data2, InterfaceClassGUID->Data3,
         InterfaceClassGUID->Data4[0], InterfaceClassGUID->Data4[1],
         InterfaceClassGUID->Data4[2], InterfaceClassGUID->Data4[3],
@@ -229,4 +240,138 @@ void DlWdfRequestComplete(
     UNREFERENCED_PARAMETER(DriverGlobals);
     
     printf("[INFO] Completing request %p with status 0x%x. This is currently a no-op\n", Request, Status);
+}
+
+NTSTATUS DlWdfIoQueueCreate(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFDEVICE Device,
+    _In_
+    PWDF_IO_QUEUE_CONFIG Config,
+    _In_opt_
+    PWDF_OBJECT_ATTRIBUTES QueueAttributes,
+    _Out_opt_
+    WDFQUEUE* Queue
+)
+{
+    UNREFERENCED_PARAMETER(DriverGlobals);
+    UNREFERENCED_PARAMETER(Device);
+    UNREFERENCED_PARAMETER(Config);
+    UNREFERENCED_PARAMETER(QueueAttributes);
+    UNREFERENCED_PARAMETER(Queue);
+
+    printf("[INFO] Creating queue is currently a no-op\n");
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS DlWdfDriverOpenParametersRegistryKey(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFDRIVER Driver,
+    _In_
+    ACCESS_MASK DesiredAccess,
+    _In_opt_
+    PWDF_OBJECT_ATTRIBUTES KeyAttributes,
+    _Out_
+    WDFKEY* Key
+)
+{
+    UNREFERENCED_PARAMETER(DriverGlobals);
+    UNREFERENCED_PARAMETER(Driver);
+    UNREFERENCED_PARAMETER(DesiredAccess);
+    UNREFERENCED_PARAMETER(KeyAttributes);
+
+    // This is almost a no-op now
+    *Key = (WDFKEY) malloc(1);
+    if (*Key == NULL) {
+        return STATUS_INSUFFICIENT_RESOURCES;
+    }
+
+    return STATUS_SUCCESS;
+}
+
+VOID DlWdfRegistryClose(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFKEY Key
+)
+{
+    UNREFERENCED_PARAMETER(DriverGlobals);
+
+    // This is almost a no-op now
+    if (Key != NULL) {
+        free(Key);
+    }
+}
+
+NTSTATUS DlWdfRegistryQueryULong(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFKEY Key,
+    _In_
+    PCUNICODE_STRING ValueName,
+    _Out_
+    PULONG Value
+)
+{
+    UNICODE_STRING KeyEnableDisplay;
+
+    UNREFERENCED_PARAMETER(DriverGlobals);
+
+    if (Key == NULL) {
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    RtlInitUnicodeString(&KeyEnableDisplay, L"EnableDisplay");
+    if (RtlEqualUnicodeString(&KeyEnableDisplay, ValueName, FALSE)) {
+        printf("INFO] WdfRegistryQueryUlong requesting EnableDisplay key. Returns 0 to disable HDMI control\n");
+        OutputDebugString(L"[INFO] WdfRegistryQueryUlong requesting EnableDisplay key. Returns 0 to disable HDMI control\n");
+        *Value = 0;
+        return STATUS_SUCCESS;
+    }
+
+    return STATUS_OBJECT_NAME_NOT_FOUND;
+}
+
+NTSTATUS DlWdfTimerCreate(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    PWDF_TIMER_CONFIG Config,
+    _In_
+    PWDF_OBJECT_ATTRIBUTES Attributes,
+    _Out_
+    WDFTIMER* Timer
+)
+{
+    PDREAMLIFTER_TIMER pTimer = NULL;
+
+    UNREFERENCED_PARAMETER(DriverGlobals);
+    
+    if (Config == NULL || Attributes == NULL) {
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    if (Config->UseHighResolutionTimer != FALSE || Config->Period != 0) {
+        return STATUS_NOT_SUPPORTED;
+    }
+
+    pTimer = malloc(sizeof(DREAMLIFTER_TIMER));
+    RtlZeroMemory(pTimer, sizeof(DREAMLIFTER_TIMER));
+
+    if (pTimer == NULL) {
+        OutputDebugString(L"[ERROR] Failed to allocate timer\n");
+        return STATUS_INSUFFICIENT_RESOURCES;
+    }
+
+    pTimer->AutomaticSerialization = Config->AutomaticSerialization;
+    pTimer->EvtTimerFunc = Config->EvtTimerFunc;
+    pTimer->ParentObject = Attributes->ParentObject;
+
+    *Timer = (WDFTIMER)pTimer;
+    return STATUS_SUCCESS;
 }

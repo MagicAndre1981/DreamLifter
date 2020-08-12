@@ -22,6 +22,7 @@
 #define STATUS_INSUFFICIENT_RESOURCES    ((NTSTATUS)0xC000009AL)
 #define STATUS_NOT_SUPPORTED             ((NTSTATUS)0xC00000BBL)
 #define STATUS_NOT_IMPLEMENTED           ((NTSTATUS)0xC0000002L)
+#define STATUS_OBJECT_NAME_NOT_FOUND     ((NTSTATUS)0xC0000035L)
 
 NTSTATUS DlUmBindVersionLib(
     _In_ PVOID Context,
@@ -37,6 +38,13 @@ NTSTATUS DlUmBindExtensionClass(
 );
 
 NTSTATUS DlWdfFunctionImplStub();
+
+// Helper
+extern NTSYSAPI BOOLEAN RtlEqualUnicodeString(
+    PCUNICODE_STRING String1,
+    PCUNICODE_STRING String2,
+    BOOLEAN          CaseInSensitive
+);
 
 // Begin DreamLifter WDF implementation
 typedef struct _DRIVER_INSTANCE {
@@ -56,6 +64,7 @@ typedef struct _DREAMLIFTER_DEVICE {
     PFN_WDF_DEVICE_PREPARE_HARDWARE EvtDevicePrepareHardware;
     PCWDF_OBJECT_CONTEXT_TYPE_INFO DeviceContextInfo;
     PVOID DeviceContext;
+    HANDLE SerializationMutex;
 } DREAMLIFTER_DEVICE, *PDREAMLIFTER_DEVICE;
 
 NTSTATUS DlWdfCreateDriver(
@@ -144,6 +153,68 @@ void DlWdfRequestComplete(
     WDFREQUEST Request,
     _In_
     NTSTATUS Status
+);
+
+NTSTATUS DlWdfIoQueueCreate(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFDEVICE Device,
+    _In_
+    PWDF_IO_QUEUE_CONFIG Config,
+    _In_opt_
+    PWDF_OBJECT_ATTRIBUTES QueueAttributes,
+    _Out_opt_
+    WDFQUEUE* Queue
+);
+
+NTSTATUS DlWdfDriverOpenParametersRegistryKey(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFDRIVER Driver,
+    _In_
+    ACCESS_MASK DesiredAccess,
+    _In_opt_
+    PWDF_OBJECT_ATTRIBUTES KeyAttributes,
+    _Out_
+    WDFKEY* Key
+);
+
+VOID DlWdfRegistryClose(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFKEY Key
+);
+
+NTSTATUS DlWdfRegistryQueryULong(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFKEY Key,
+    _In_
+    PCUNICODE_STRING ValueName,
+    _Out_
+    PULONG Value
+);
+
+typedef struct _DREAMLIFTER_TIMER {
+    PVOID ParentObject;
+    BOOL AutomaticSerialization;
+    PFN_WDF_TIMER EvtTimerFunc;
+    UINT_PTR Win32TimerHandle;
+} DREAMLIFTER_TIMER, *PDREAMLIFTER_TIMER;
+
+NTSTATUS DlWdfTimerCreate(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    PWDF_TIMER_CONFIG Config,
+    _In_
+    PWDF_OBJECT_ATTRIBUTES Attributes,
+    _Out_
+    WDFTIMER* Timer
 );
 
 #endif

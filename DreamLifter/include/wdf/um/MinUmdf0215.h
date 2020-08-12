@@ -14,8 +14,20 @@ DECLARE_HANDLE(WDFIORESREQLIST);
 DECLARE_HANDLE(WDFIORESLIST);
 DECLARE_HANDLE(WDFCMRESLIST);
 
+DECLARE_HANDLE(WDFQUEUE);
+DECLARE_HANDLE(WDFKEY);
+
+DECLARE_HANDLE(WDFTIMER);
+
 typedef PVOID PDRIVER_OBJECT;
 typedef PVOID PDEVICE_OBJECT;
+typedef PVOID WDFCONTEXT;
+
+typedef enum _WDF_TRI_STATE {
+    WdfFalse = 0,
+    WdfTrue = 1,
+    WdfUseDefault = 2,
+} WDF_TRI_STATE, * PWDF_TRI_STATE;
 
 typedef
 VOID
@@ -515,6 +527,304 @@ VOID
     WDFREQUEST Request,
     _In_
     NTSTATUS Status
+    );
+
+typedef enum _WDF_IO_QUEUE_DISPATCH_TYPE {
+    WdfIoQueueDispatchInvalid = 0,
+    WdfIoQueueDispatchSequential,
+    WdfIoQueueDispatchParallel,
+    WdfIoQueueDispatchManual,
+    WdfIoQueueDispatchMax,
+} WDF_IO_QUEUE_DISPATCH_TYPE;
+
+typedef
+VOID
+EVT_WDF_IO_QUEUE_IO_DEFAULT(
+    _In_
+    WDFQUEUE Queue,
+    _In_
+    WDFREQUEST Request
+);
+
+typedef EVT_WDF_IO_QUEUE_IO_DEFAULT* PFN_WDF_IO_QUEUE_IO_DEFAULT;
+
+typedef
+VOID
+EVT_WDF_IO_QUEUE_IO_STOP(
+    _In_
+    WDFQUEUE Queue,
+    _In_
+    WDFREQUEST Request,
+    _In_
+    ULONG ActionFlags
+);
+
+typedef EVT_WDF_IO_QUEUE_IO_STOP* PFN_WDF_IO_QUEUE_IO_STOP;
+
+typedef
+VOID
+EVT_WDF_IO_QUEUE_IO_RESUME(
+    _In_
+    WDFQUEUE Queue,
+    _In_
+    WDFREQUEST Request
+);
+
+typedef EVT_WDF_IO_QUEUE_IO_RESUME* PFN_WDF_IO_QUEUE_IO_RESUME;
+
+typedef
+VOID
+EVT_WDF_IO_QUEUE_IO_READ(
+    _In_
+    WDFQUEUE Queue,
+    _In_
+    WDFREQUEST Request,
+    _In_
+    size_t Length
+);
+
+typedef EVT_WDF_IO_QUEUE_IO_READ* PFN_WDF_IO_QUEUE_IO_READ;
+
+typedef
+VOID
+EVT_WDF_IO_QUEUE_IO_WRITE(
+    _In_
+    WDFQUEUE Queue,
+    _In_
+    WDFREQUEST Request,
+    _In_
+    size_t Length
+);
+
+typedef EVT_WDF_IO_QUEUE_IO_WRITE* PFN_WDF_IO_QUEUE_IO_WRITE;
+
+typedef
+VOID
+EVT_WDF_IO_QUEUE_IO_DEVICE_CONTROL(
+    _In_
+    WDFQUEUE Queue,
+    _In_
+    WDFREQUEST Request,
+    _In_
+    size_t OutputBufferLength,
+    _In_
+    size_t InputBufferLength,
+    _In_
+    ULONG IoControlCode
+);
+
+typedef EVT_WDF_IO_QUEUE_IO_DEVICE_CONTROL* PFN_WDF_IO_QUEUE_IO_DEVICE_CONTROL;
+
+typedef
+VOID
+EVT_WDF_IO_QUEUE_IO_INTERNAL_DEVICE_CONTROL(
+    _In_
+    WDFQUEUE Queue,
+    _In_
+    WDFREQUEST Request,
+    _In_
+    size_t OutputBufferLength,
+    _In_
+    size_t InputBufferLength,
+    _In_
+    ULONG IoControlCode
+);
+
+typedef EVT_WDF_IO_QUEUE_IO_INTERNAL_DEVICE_CONTROL* PFN_WDF_IO_QUEUE_IO_INTERNAL_DEVICE_CONTROL;
+
+
+typedef
+VOID
+EVT_WDF_IO_QUEUE_IO_CANCELED_ON_QUEUE(
+    _In_
+    WDFQUEUE Queue,
+    _In_
+    WDFREQUEST Request
+);
+
+typedef EVT_WDF_IO_QUEUE_IO_CANCELED_ON_QUEUE* PFN_WDF_IO_QUEUE_IO_CANCELED_ON_QUEUE;
+
+
+typedef
+VOID
+EVT_WDF_IO_QUEUE_STATE(
+    _In_
+    WDFQUEUE Queue,
+    _In_
+    WDFCONTEXT Context
+);
+
+typedef EVT_WDF_IO_QUEUE_STATE* PFN_WDF_IO_QUEUE_STATE;
+
+//
+// This is the structure used to configure an IoQueue and
+// register callback events to it.
+//
+typedef struct _WDF_IO_QUEUE_CONFIG {
+    ULONG                                       Size;
+    WDF_IO_QUEUE_DISPATCH_TYPE                  DispatchType;
+    WDF_TRI_STATE                               PowerManaged;
+    BOOLEAN                                     AllowZeroLengthRequests;
+    BOOLEAN                                     DefaultQueue;
+    PFN_WDF_IO_QUEUE_IO_DEFAULT                 EvtIoDefault;
+    PFN_WDF_IO_QUEUE_IO_READ                    EvtIoRead;
+    PFN_WDF_IO_QUEUE_IO_WRITE                   EvtIoWrite;
+    PFN_WDF_IO_QUEUE_IO_DEVICE_CONTROL          EvtIoDeviceControl;
+    PFN_WDF_IO_QUEUE_IO_INTERNAL_DEVICE_CONTROL EvtIoInternalDeviceControl;
+    PFN_WDF_IO_QUEUE_IO_STOP                    EvtIoStop;
+    PFN_WDF_IO_QUEUE_IO_RESUME                  EvtIoResume;
+    PFN_WDF_IO_QUEUE_IO_CANCELED_ON_QUEUE       EvtIoCanceledOnQueue;
+
+    union {
+        struct {
+            ULONG NumberOfPresentedRequests;
+        } Parallel;
+    } Settings;
+
+    WDFDRIVER                                   Driver;
+} WDF_IO_QUEUE_CONFIG, * PWDF_IO_QUEUE_CONFIG;
+
+//
+// WDF Function: WdfIoQueueCreate
+//
+typedef
+_Must_inspect_result_
+_IRQL_requires_max_(DISPATCH_LEVEL)
+NTSTATUS
+(*PFN_WDFIOQUEUECREATE)(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFDEVICE Device,
+    _In_
+    PWDF_IO_QUEUE_CONFIG Config,
+    _In_opt_
+    PWDF_OBJECT_ATTRIBUTES QueueAttributes,
+    _Out_opt_
+    WDFQUEUE* Queue
+    );
+
+//
+// WDF Function: WdfDriverOpenParametersRegistryKey
+//
+typedef
+_Must_inspect_result_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+(*PFN_WDFDRIVEROPENPARAMETERSREGISTRYKEY)(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFDRIVER Driver,
+    _In_
+    ACCESS_MASK DesiredAccess,
+    _In_opt_
+    PWDF_OBJECT_ATTRIBUTES KeyAttributes,
+    _Out_
+    WDFKEY* Key
+    );
+
+//
+// WDF Function: WdfRegistryClose
+//
+typedef
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+(*PFN_WDFREGISTRYCLOSE)(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFKEY Key
+    );
+
+//
+// WDF Function: WdfRegistryQueryULong
+//
+typedef
+_Must_inspect_result_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+NTSTATUS
+(*PFN_WDFREGISTRYQUERYULONG)(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFKEY Key,
+    _In_
+    PCUNICODE_STRING ValueName,
+    _Out_
+    PULONG Value
+    );
+
+#define TolerableDelayUnlimited ((ULONG)-1)
+
+//
+// This is the function that gets called back into the driver
+// when the TIMER fires.
+//
+typedef
+_Function_class_(EVT_WDF_TIMER)
+_IRQL_requires_same_
+_IRQL_requires_max_(DISPATCH_LEVEL)
+VOID
+EVT_WDF_TIMER(
+    _In_
+    WDFTIMER Timer
+);
+
+typedef EVT_WDF_TIMER* PFN_WDF_TIMER;
+
+//
+// Disable warning C4324: structure was padded due to DECLSPEC_ALIGN
+// This padding is intentional and necessary.
+#pragma warning(push)
+#pragma warning(disable: 4324)
+
+typedef struct _WDF_TIMER_CONFIG {
+    ULONG Size;
+    PFN_WDF_TIMER EvtTimerFunc;
+
+    ULONG Period;
+
+    //
+    // If this is TRUE, the Timer will automatically serialize
+    // with the event callback handlers of its Parent Object.
+    //
+    // Parent Object's callback constraints should be compatible
+    // with the Timer DPC (DISPATCH_LEVEL), or the request will fail.
+    //
+    BOOLEAN AutomaticSerialization;
+
+    //
+    // Optional tolerance for the timer in milliseconds.
+    //
+    ULONG TolerableDelay;
+
+    //
+    // If this is TRUE, high resolution timers will be used. The default
+    // value is FALSE
+    //
+    DECLSPEC_ALIGN(8) BOOLEAN UseHighResolutionTimer;
+
+} WDF_TIMER_CONFIG, * PWDF_TIMER_CONFIG;
+
+#pragma warning(pop)
+
+//
+// WDF Function: WdfTimerCreate
+//
+typedef
+_Must_inspect_result_
+_IRQL_requires_max_(DISPATCH_LEVEL)
+NTSTATUS
+(*PFN_WDFTIMERCREATE)(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    PWDF_TIMER_CONFIG Config,
+    _In_
+    PWDF_OBJECT_ATTRIBUTES Attributes,
+    _Out_
+    WDFTIMER* Timer
     );
 
 #endif

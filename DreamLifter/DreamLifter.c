@@ -49,6 +49,11 @@ int main(int argc, char* argv[])
     g_WdfFunctions0215[WdfSpinLockAcquireTableIndex] = (PVOID) DlWdfSpinLockAcquire;
     g_WdfFunctions0215[WdfSpinLockReleaseTableIndex] = (PVOID) DlWdfSpinLockRelease;
     g_WdfFunctions0215[WdfRequestCompleteTableIndex] = (PVOID) DlWdfRequestComplete;
+    g_WdfFunctions0215[WdfIoQueueCreateTableIndex] = (PVOID) DlWdfIoQueueCreate;
+    g_WdfFunctions0215[WdfDriverOpenParametersRegistryKeyTableIndex] = (PVOID) DlWdfDriverOpenParametersRegistryKey;
+    g_WdfFunctions0215[WdfRegistryCloseTableIndex] = (PVOID) DlWdfRegistryClose;
+    g_WdfFunctions0215[WdfRegistryQueryULongTableIndex] = (PVOID) DlWdfRegistryQueryULong;
+    g_WdfFunctions0215[WdfTimerCreateTableIndex] = (PVOID) DlWdfTimerCreate;
 
     // Prepare loader interface
     RtlZeroMemory(&g_loaderInterface, sizeof(WDF_LOADER_INTERFACE));
@@ -105,6 +110,11 @@ cleanup:
     if (g_pDevice != NULL) {
         if (g_pDevice->DeviceContext != NULL) {
             free(g_pDevice->DeviceContext);
+        }
+        if (g_pDevice->SerializationMutex != NULL) {
+            // Acquire ownership and release it
+            WaitForSingleObject(g_pDevice->SerializationMutex, INFINITE);
+            CloseHandle(g_pDevice->SerializationMutex);
         }
     }
 
