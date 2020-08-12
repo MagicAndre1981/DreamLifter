@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
     g_WdfFunctions0215[WdfTimerStopTableIndex] = (PVOID) DlWdfTimerStop;
     g_WdfFunctions0215[WdfWorkItemCreateTableIndex] = (PVOID) DlWdfWorkItemCreate;
     g_WdfFunctions0215[WdfWorkItemGetParentObjectTableIndex] = (PVOID) DlWdfWorkItemGetParentObject;
-    g_WdfFunctions0215[WdfWorkItemEnqueueTableIndex] = (PVOID) DlWdfWorkItemThreadWorker;
+    g_WdfFunctions0215[WdfWorkItemEnqueueTableIndex] = (PVOID) DlWdfWorkItemEnqueue;
 
     g_UcmFunctions0100[UcmInitializeDeviceTableIndex] = (PVOID) DlUcmInitializeDevice;
     g_UcmFunctions0100[UcmConnectorCreateTableIndex] = (PVOID) DlUcmCreateConnector;
@@ -124,6 +124,13 @@ int main(int argc, char* argv[])
             }
 
             // Start main loop and hold
+            while (TRUE)
+            {
+                MSG msg;
+
+                GetMessage(&msg, NULL, 0, 0);
+                DispatchMessage(&msg);
+            }
         }
     }
 

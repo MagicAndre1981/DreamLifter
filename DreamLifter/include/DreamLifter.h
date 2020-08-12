@@ -212,7 +212,8 @@ typedef struct _DREAMLIFTER_TIMER {
     PVOID ParentObject;
     BOOL AutomaticSerialization;
     PFN_WDF_TIMER EvtTimerFunc;
-    UINT_PTR Win32TimerHandle;
+    HANDLE TimerHandle;
+    volatile BOOL Cancelled;
 } DREAMLIFTER_TIMER, *PDREAMLIFTER_TIMER;
 
 NTSTATUS DlWdfTimerCreate(
@@ -242,14 +243,11 @@ BOOLEAN DlWdfTimerStart(
     LONGLONG DueTime
 );
 
-void DlWin32TimerCallbackProc(
-    HWND Arg1,
-    UINT Arg2,
-    UINT_PTR Arg3,
-    DWORD Arg4
+DWORD WINAPI DlTimerThreadWorker(
+    LPVOID lpParam
 );
 
-DWORD WINAPI DlWin32TimerCallbackThreadWorker(
+DWORD WINAPI DlTimerCallbackThreadWorker(
     LPVOID lpParam
 );
 
