@@ -31,9 +31,9 @@ typedef struct _WDF_CLASS_EXTENSION {
     char* ExtensionName;
     ULONG MajorVersion;
     ULONG MinorVersion;
-    ULONG FuncCount;
-    PVOID *FuncTable;
     ULONG Pad0;
+    PVOID FuncTable;
+    ULONG FuncCount;
     void* GlobalsPtr;
     void* CustomizedEntryPoint;
     INT64 Pad1;

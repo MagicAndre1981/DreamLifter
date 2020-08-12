@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
     }
 
     for (ULONG i = 0; i < UcmFunctionTableNumEntries; i++) {
-        g_UcmFunctions0100[i] = (PVOID) DlWdfFunctionImplStub;
+        g_UcmFunctions0100[i] = (PVOID) DlWdfCxUcmFunctionImplStub;
     }
 
     // Now fills in the implementation
@@ -195,9 +195,16 @@ NTSTATUS DlUmBindExtensionClass(
     // Bind to the stub class extension implementation
     if (strcmp("UcmCx", ClassExtensionInfo->ExtensionName))
     {
-        printf("Request load WDF UcmCx extension version %d.%d\n", ClassExtensionInfo->MajorVersion, ClassExtensionInfo->MinorVersion);
-        *ClassExtensionInfo->FuncTable = g_UcmFunctions0100;
-        return STATUS_SUCCESS;
+        if (ClassExtensionInfo->FuncCount == 11) {
+            printf("Request load WDF UcmCx extension version %d.%d\n", ClassExtensionInfo->MajorVersion, ClassExtensionInfo->MinorVersion);
+            RtlCopyMemory((PVOID) ClassExtensionInfo->FuncTable, g_UcmFunctions0100, sizeof(g_UcmFunctions0100));
+            return STATUS_SUCCESS;
+        }
+        else {
+            printf("Request load WDF UcmCx extension version %d.%d, but function count mismatch: %d (expect 11)\n", ClassExtensionInfo->MajorVersion,
+                ClassExtensionInfo->MinorVersion, ClassExtensionInfo->FuncCount);
+        }
+        
     }
 
     return STATUS_NOT_SUPPORTED;
@@ -206,7 +213,20 @@ NTSTATUS DlUmBindExtensionClass(
 NTSTATUS DlWdfFunctionImplStub()
 {
     // Calling a function that is not yet implemented.
-    printf("Calling a unsupported function\n");
+    printf("Calling a unimplemented WDF Fx stub function\n");
+
+    if (IsDebuggerPresent())
+    {
+        DebugBreak();
+    }
+
+    return STATUS_NOT_IMPLEMENTED;
+}
+
+NTSTATUS DlWdfCxUcmFunctionImplStub()
+{
+    // Calling a function that is not yet implemented.
+    printf("Calling a unimplemented WDF UcmCx stub function\n");
 
     if (IsDebuggerPresent())
     {

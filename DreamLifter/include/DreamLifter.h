@@ -38,6 +38,7 @@ NTSTATUS DlUmBindExtensionClass(
 );
 
 NTSTATUS DlWdfFunctionImplStub();
+NTSTATUS DlWdfCxUcmFunctionImplStub();
 
 // Helper
 extern NTSYSAPI BOOLEAN RtlEqualUnicodeString(
