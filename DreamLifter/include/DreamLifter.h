@@ -421,4 +421,14 @@ NTSTATUS DlUcmConnectorPowerDirectionChanged(
     UCM_POWER_ROLE CurrentPowerRole
 );
 
+// Debug utilities
+char* DbgUcmGetOperatingMode(UCM_TYPEC_OPERATING_MODE mode);
+char* DbgUcmGetPartner(UCM_TYPEC_PARTNER partner);
+char* DbgUcmGetCurrent(UCM_TYPEC_CURRENT current);
+char* DbgUcmGetPowerRole(UCM_POWER_ROLE role);
+char* DbgUcmGetDataRole(UCM_DATA_ROLE role);
+char* DbgUcmGetPdConnState(UCM_PD_CONN_STATE state);
+char* DbgUcmGetChargingState(UCM_CHARGING_STATE state);
+char* DbgUcmGetPdoType(UCM_PD_POWER_DATA_OBJECT_TYPE type);
+
 #endif

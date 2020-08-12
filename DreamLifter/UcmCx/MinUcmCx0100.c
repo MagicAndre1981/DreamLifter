@@ -70,8 +70,8 @@ NTSTATUS DlUcmCreateConnector(
     RtlCopyMemory((PVOID) &pDevice->UcmManagerInfo->TypeCConfig, (PVOID)Config->TypeCConfig, sizeof(UCM_CONNECTOR_TYPEC_CONFIG));
     *Connector = (UCMCONNECTOR)pDevice->UcmManagerInfo;
 
-    printf("[INFO] Type-C connector summary: supported modes 0x%x, power source capabilities 0x%x, analog audio 0x%x\n",
-        pDevice->UcmManagerInfo->TypeCConfig.SupportedOperatingModes,
+    printf("[INFO] Type-C connector summary: supported modes %s, power source capabilities 0x%x, analog audio 0x%x\n",
+        DbgUcmGetOperatingMode(pDevice->UcmManagerInfo->TypeCConfig.SupportedOperatingModes),
         pDevice->UcmManagerInfo->TypeCConfig.SupportedPowerSourcingCapabilities,
         pDevice->UcmManagerInfo->TypeCConfig.AudioAccessoryCapable
     );
@@ -104,10 +104,10 @@ NTSTATUS DlUcmConnectorTypeCAttach(
         pConnector->Partner = Params->Partner;
     }
 
-    printf("[INFO] Ucm reports Type-C attached. Charging state 0x%x, current 0x%x, partner 0x%x\n",
-        pConnector->ChargingState,
-        pConnector->PowerCurrent,
-        pConnector->Partner
+    printf("[INFO] Ucm reports Type-C attached. Charging state %s, current %s, partner %s\n",
+        DbgUcmGetChargingState(pConnector->ChargingState),
+        DbgUcmGetCurrent(pConnector->PowerCurrent),
+        DbgUcmGetPartner(pConnector->Partner)
     );
 
     return STATUS_SUCCESS;
@@ -163,8 +163,8 @@ NTSTATUS DlUcmConnectorTypeCCurrentAdChanged(
         pConnector->PowerCurrent = CurrentAdvertisement;
     }
 
-    printf("[INFO] Ucm reports power current change. Current 0x%x\n",
-        pConnector->PowerCurrent
+    printf("[INFO] Ucm reports power current change: %s\n",
+        DbgUcmGetCurrent(pConnector->PowerCurrent)
     );
 
     return STATUS_SUCCESS;
@@ -242,9 +242,9 @@ NTSTATUS DlUcmConnectorPdConnectionStateChanged(
         RtlCopyMemory(&pConnector->PdRdo, &Params->Rdo, sizeof(UCM_PD_REQUEST_DATA_OBJECT));
     }
 
-    printf("[INFO] Ucm reports PD state change. PD state 0x%x, Charging state 0x%x\n",
-        pConnector->PdConnState,
-        pConnector->ChargingState
+    printf("[INFO] Ucm reports PD state change: PD state %s, Charging state %s\n",
+        DbgUcmGetPdConnState(pConnector->PdConnState),
+        DbgUcmGetChargingState(pConnector->ChargingState)
     );
 
     return STATUS_SUCCESS;
@@ -267,8 +267,8 @@ NTSTATUS DlUcmConnectorChargingStateChanged(
         pConnector->ChargingState = ChargingState;
     }
 
-    printf("[INFO] Ucm reports charging state change. Charging State 0x%x\n",
-        pConnector->ChargingState
+    printf("[INFO] Ucm reports charging state change: %s\n",
+        DbgUcmGetChargingState(pConnector->ChargingState)
     );
 
     return STATUS_SUCCESS;
@@ -293,8 +293,8 @@ NTSTATUS DlUcmConnectorDataDirectionChanged(
         pConnector->DataRole = CurrentDataRole;
     }
 
-    printf("[INFO] Ucm reports data role change. Current Data Role 0x%x. Change state 0x%x.\n",
-        pConnector->DataRole,
+    printf("[INFO] Ucm reports data role change: %s. Change state 0x%x.\n",
+        DbgUcmGetDataRole(pConnector->DataRole),
         Success
     );
 
@@ -320,8 +320,8 @@ NTSTATUS DlUcmConnectorPowerDirectionChanged(
         pConnector->PowerRole = CurrentPowerRole;
     }
 
-    printf("[INFO] Ucm reports power role change. Current Power Role 0x%x. Change state 0x%x.\n",
-        pConnector->PowerRole,
+    printf("[INFO] Ucm reports power role change: %s. Change state 0x%x.\n",
+        DbgUcmGetPowerRole(pConnector->PowerRole),
         Success
     );
 

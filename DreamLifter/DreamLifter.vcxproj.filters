@@ -59,6 +59,9 @@
     <ClCompile Include="UcmCx\MinUcmCx0100.c">
       <Filter>Source Files\UcmCx</Filter>
     </ClCompile>
+    <ClCompile Include="UcmCx\UcmEnumDebugUtility.c">
+      <Filter>Source Files\UcmCx</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">

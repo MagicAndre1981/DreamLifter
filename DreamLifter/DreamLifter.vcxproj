@@ -335,6 +335,7 @@
   <ItemGroup>
     <ClCompile Include="DreamLifter.c" />
     <ClCompile Include="UcmCx\MinUcmCx0100.c" />
+    <ClCompile Include="UcmCx\UcmEnumDebugUtility.c" />
     <ClCompile Include="um\MinUmdf0215.c" />
   </ItemGroup>
   <ItemGroup>
