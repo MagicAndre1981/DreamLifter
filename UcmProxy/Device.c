@@ -67,6 +67,7 @@ UcmProxyPrepareHardware
 {
     NTSTATUS status;
     PDEVICE_CONTEXT pDeviceContext;
+    PCONNECTOR_CONTEXT pConnectorContext;
     UCM_CONNECTOR_CONFIG ucmConnectorConfig;
     UCM_CONNECTOR_TYPEC_CONFIG typeCConfig;
     UCM_CONNECTOR_PD_CONFIG pdConfig;
@@ -94,6 +95,10 @@ UcmProxyPrepareHardware
     if (!NT_SUCCESS(status)) {
         TraceEvents(TRACE_LEVEL_ERROR, TRACE_DRIVER, "UcmConnectorCreate failed %!STATUS!", status);
     }
+
+    // Put device reference in
+    pConnectorContext = ConnectorGetContext(pDeviceContext->Connector);
+    pConnectorContext->ParentDevice = Device;
 
     return status;
 }
