@@ -86,6 +86,12 @@ int main(int argc, char* argv[])
     hTycLibrary = LoadLibraryA("C:\\Windows\\DreamLifter\\TyC.dll");
     if (hTycLibrary == NULL)
     {
+        // Try fallback
+        hTycLibrary = LoadLibraryA("TyC.dll");
+    }
+
+    if (hTycLibrary == NULL)
+    {
         printf("[ERROR] Unable to load TyC.dll, error %d\n", GetLastError());
         err = ENFILE;
         goto exit;

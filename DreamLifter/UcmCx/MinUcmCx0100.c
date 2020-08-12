@@ -192,6 +192,12 @@ NTSTATUS DlUcmConnectorPdSourceCaps(
     }
 
     printf("[INFO] Ucm receives new source power capabilities\n");
+    for (UCHAR i = 0; i < PdoCount; i++) {
+        UCM_PD_POWER_DATA_OBJECT Pdo = Pdos[i];
+        printf("Source power PDO %d:\n", i);
+        DbgUcmDumpPdo(Pdo);
+        printf("\n");
+    }
 
     return STATUS_SUCCESS;
 }
@@ -218,6 +224,12 @@ NTSTATUS DlUcmConnectorPdPartnerSourceCaps(
     }
 
     printf("[INFO] Ucm receives new partner power capabilities\n");
+    for (UCHAR i = 0; i < PdoCount; i++) {
+        UCM_PD_POWER_DATA_OBJECT Pdo = Pdos[i];
+        printf("Partner power PDO %d:\n", i);
+        DbgUcmDumpPdo(Pdo);
+        printf("\n");
+    }
 
     return STATUS_SUCCESS;
 }

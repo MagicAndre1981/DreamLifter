@@ -123,3 +123,34 @@ char* DbgUcmGetPdoType(UCM_PD_POWER_DATA_OBJECT_TYPE type) {
 		return "Unknown";
 	}
 }
+
+void DbgUcmDumpPdo(UCM_PD_POWER_DATA_OBJECT Pdo) {
+	if ((Pdo.Common.Type & UcmPdPdoTypeFixedSupply) != 0) {
+		printf(" UcmPdPdoTypeFixedSupply:\n");
+		printf("  MaximumCurrentIn10mA: %u\n", Pdo.FixedSupplyPdo.MaximumCurrentIn10mA);
+		printf("  VoltageIn50mV: %u\n", Pdo.FixedSupplyPdo.VoltageIn50mV);
+		printf("  PeakCurrent: %u\n", Pdo.FixedSupplyPdo.PeakCurrent);
+		printf("  DataRoleSwap: %u\n", Pdo.FixedSupplyPdo.DataRoleSwap);
+		printf("  UsbCommunicationCapable: %u\n", Pdo.FixedSupplyPdo.UsbCommunicationCapable);
+		printf("  ExternallyPowered: %u\n", Pdo.FixedSupplyPdo.ExternallyPowered);
+		printf("  UsbSuspendSupported: %u\n", Pdo.FixedSupplyPdo.UsbSuspendSupported);
+		printf("  DualRolePower: %u\n", Pdo.FixedSupplyPdo.DualRolePower);
+		printf("  FixedSupply: %u\n", Pdo.FixedSupplyPdo.FixedSupply);
+	}
+
+	if ((Pdo.Common.Type & UcmPdPdoTypeBatterySupply) != 0) {
+		printf(" UcmPdPdoTypeBatterySupply:\n");
+		printf("  MaximumAllowablePowerIn250mW: %u\n", Pdo.BatterySupplyPdo.MaximumAllowablePowerIn250mW);
+		printf("  MinimumVoltageIn50mV: %u\n", Pdo.BatterySupplyPdo.MinimumVoltageIn50mV);
+		printf("  MaximumVoltageIn50mV: %u\n", Pdo.BatterySupplyPdo.MaximumVoltageIn50mV);
+		printf("  Battery: %u\n", Pdo.BatterySupplyPdo.Battery);
+	}
+
+	if ((Pdo.Common.Type & UcmPdPdoTypeVariableSupplyNonBattery) != 0) {
+		printf(" UcmPdPdoTypeVariableSupplyNonBattery:\n");
+		printf("  MaximumCurrentIn10mA: %u\n", Pdo.VariableSupplyNonBatteryPdo.MaximumCurrentIn10mA);
+		printf("  MinimumVoltageIn50mV: %u\n", Pdo.VariableSupplyNonBatteryPdo.MinimumVoltageIn50mV);
+		printf("  MaximumVoltageIn50mV: %u\n", Pdo.VariableSupplyNonBatteryPdo.MaximumVoltageIn50mV);
+		printf("  VariableSupportNonBattery: %u\n", Pdo.VariableSupplyNonBatteryPdo.VariableSupportNonBattery);
+	}
+}

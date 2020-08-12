@@ -430,5 +430,6 @@ char* DbgUcmGetDataRole(UCM_DATA_ROLE role);
 char* DbgUcmGetPdConnState(UCM_PD_CONN_STATE state);
 char* DbgUcmGetChargingState(UCM_CHARGING_STATE state);
 char* DbgUcmGetPdoType(UCM_PD_POWER_DATA_OBJECT_TYPE type);
+void DbgUcmDumpPdo(UCM_PD_POWER_DATA_OBJECT Pdo);
 
 #endif
