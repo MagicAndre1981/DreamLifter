@@ -123,3 +123,32 @@ NTSTATUS DlWdfDeviceCreate(
     g_pDevice = pDevice;
     return STATUS_SUCCESS;
 }
+
+NTSTATUS DlWdfCreateDeviceInterface(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFDEVICE Device,
+    _In_
+    CONST GUID* InterfaceClassGUID,
+    _In_opt_
+    PCUNICODE_STRING ReferenceString
+)
+{
+    UNREFERENCED_PARAMETER(DriverGlobals);
+    UNREFERENCED_PARAMETER(ReferenceString);
+
+    if (Device == NULL || InterfaceClassGUID == NULL) {
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    printf("[INFO] Creating device interface {%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX}. This is currently a no-op",
+        InterfaceClassGUID->Data1, InterfaceClassGUID->Data2, InterfaceClassGUID->Data3,
+        InterfaceClassGUID->Data4[0], InterfaceClassGUID->Data4[1],
+        InterfaceClassGUID->Data4[2], InterfaceClassGUID->Data4[3],
+        InterfaceClassGUID->Data4[4], InterfaceClassGUID->Data4[5],
+        InterfaceClassGUID->Data4[6], InterfaceClassGUID->Data4[7]
+    );
+
+    return STATUS_SUCCESS;
+}

@@ -44,6 +44,7 @@ int main(int argc, char* argv[])
     g_WdfFunctions0215[WdfDriverCreateTableIndex] = (PVOID) DlWdfCreateDriver;
     g_WdfFunctions0215[WdfDeviceInitSetPnpPowerEventCallbacksTableIndex] = (PVOID) DlWdfDeviceInitSetPnpPowerEventCallbacks;
     g_WdfFunctions0215[WdfDeviceCreateTableIndex] = (PVOID) DlWdfDeviceCreate;
+    g_WdfFunctions0215[WdfDeviceCreateDeviceInterfaceTableIndex] = (PVOID) DlWdfCreateDeviceInterface;
 
     // Prepare loader interface
     RtlZeroMemory(&g_loaderInterface, sizeof(WDF_LOADER_INTERFACE));

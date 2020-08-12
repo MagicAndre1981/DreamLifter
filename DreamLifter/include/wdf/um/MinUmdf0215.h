@@ -447,4 +447,20 @@ NTSTATUS
     WDFDEVICE* Device
     );
 
+//
+// WDF Function: WdfDeviceCreateDeviceInterface
+//
+typedef
+NTSTATUS
+(*PFN_WDFDEVICECREATEDEVICEINTERFACE)(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFDEVICE Device,
+    _In_
+    CONST GUID* InterfaceClassGUID,
+    _In_opt_
+    PCUNICODE_STRING ReferenceString
+    );
+
 #endif
