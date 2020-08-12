@@ -2,6 +2,8 @@
 
 #include <DreamLifter.h>
 
+#define DriverProxyPath L"\\\\?\\ROOT#TYC#0#{d1f8023f-f151-4747-8e8d-194b08d5e0ee}"
+
 extern PDRIVER_INSTANCE g_pDriverInstance;
 extern PDREAMLIFTER_DEVICE g_pDevice;
 
@@ -30,6 +32,22 @@ NTSTATUS DlUcmInitializeDevice(
             return STATUS_INSUFFICIENT_RESOURCES;
         }
 
+        // Open the driver component
+        pDevice->UcmManagerInfo->ProxyDriverHandle = CreateFile(
+            DriverProxyPath,
+            0,
+            FILE_SHARE_READ | FILE_SHARE_WRITE,
+            NULL,
+            OPEN_EXISTING,
+            0,
+            NULL
+        );
+
+        if (pDevice->UcmManagerInfo->ProxyDriverHandle == NULL) {
+            printf("[ERROR] UcmCx failed to open the driver component. Error %d\n", GetLastError());
+            return STATUS_OBJECT_NAME_NOT_FOUND;
+        }
+
         printf("[INFO] UcmCx initializes the manager instance\n");
         return STATUS_SUCCESS;
     }
@@ -52,6 +70,7 @@ NTSTATUS DlUcmCreateConnector(
 )
 {
     PDREAMLIFTER_DEVICE pDevice = (PDREAMLIFTER_DEVICE) WdfDevice;
+    HANDLE h;
 
     UNREFERENCED_PARAMETER(DriverGlobals);
     UNREFERENCED_PARAMETER(Attributes);
@@ -81,7 +100,106 @@ NTSTATUS DlUcmCreateConnector(
         pDevice->UcmManagerInfo->PdConfig.SupportedPowerRoles
     );
 
+    // Create two threads to poll the state
+    h = CreateThread(
+        NULL,
+        0,
+        DlUcmPowerRoleEventWorker,
+        pDevice,
+        0,
+        NULL
+    );
+
+    if (h == NULL) {
+        printf("[ERROR] Failed to start polling state\n");
+        return STATUS_UNSUCESSFUL;
+    }
+
+    h = CreateThread(
+        NULL,
+        0,
+        DlUcmDataRoleEventWorker,
+        pDevice,
+        0,
+        NULL
+    );
+
+    if (h == NULL) {
+        printf("[ERROR] Failed to start polling state\n");
+        return STATUS_UNSUCESSFUL;
+    }
+
+    printf("[INFO] Proxy event polling has started");
+
     return STATUS_SUCCESS;
+}
+
+DWORD WINAPI DlUcmPowerRoleEventWorker(
+    LPVOID lpParam
+)
+{
+    PDREAMLIFTER_DEVICE pDevice = (PDREAMLIFTER_DEVICE) lpParam;
+    UCHAR Role = 0;
+    BOOL ret;
+    NTSTATUS status;
+
+    while (TRUE) {
+        ret = DeviceIoControl(pDevice->UcmManagerInfo->ProxyDriverHandle, IOCTL_UCMPROXY_WAIT_SET_POWER_ROLE_CALLBACK,
+            NULL, 0,
+            (LPVOID) &Role, sizeof(UCHAR),
+            NULL, NULL
+        );
+
+        if (ret) {
+            if (pDevice->UcmManagerInfo->PdConfig.EvtSetPowerRole != NULL) {
+                status = pDevice->UcmManagerInfo->PdConfig.EvtSetPowerRole((UCMCONNECTOR) pDevice->UcmManagerInfo, (UCM_POWER_ROLE) Role);
+                if (!NT_SUCCESS(status)) {
+                    printf("[ERROR] EvtSetPowerRole failed 0x%x\n", status);
+                }
+            }
+        }
+        else {
+            printf("[ERROR] DlUcmPowerRoleEventWorker Proxy component reports failure, error %d\n", GetLastError());
+        }
+
+        Role = 0;
+    }
+
+    return 0;
+}
+
+DWORD WINAPI DlUcmDataRoleEventWorker(
+    LPVOID lpParam
+)
+{
+    PDREAMLIFTER_DEVICE pDevice = (PDREAMLIFTER_DEVICE)lpParam;
+    UCHAR Role = 0;
+    BOOL ret;
+    NTSTATUS status;
+
+    while (TRUE) {
+        ret = DeviceIoControl(pDevice->UcmManagerInfo->ProxyDriverHandle, IOCTL_UCMPROXY_WAIT_SET_DATA_ROLE_CALLBACK,
+            NULL, 0,
+            (LPVOID)&Role, sizeof(UCHAR),
+            NULL, NULL
+        );
+
+        if (ret) {
+            if (pDevice->UcmManagerInfo->TypeCConfig.EvtSetDataRole != NULL) {
+                status = pDevice->UcmManagerInfo->TypeCConfig.EvtSetDataRole((UCMCONNECTOR)pDevice->UcmManagerInfo, (UCM_POWER_ROLE)Role);
+                if (!NT_SUCCESS(status)) {
+                    printf("[ERROR] EvtSetDataRole failed 0x%x\n", status);
+                }
+            }
+        }
+        else {
+            printf("[ERROR] DlUcmDataRoleEventWorker Proxy component reports failure, error %d\n", GetLastError());
+        }
+
+        Role = 0;
+    }
+
+    return 0;
 }
 
 NTSTATUS DlUcmConnectorTypeCAttach(
@@ -94,6 +212,7 @@ NTSTATUS DlUcmConnectorTypeCAttach(
 )
 {
     PDREAMLIFTER_UCM_DEVICE pConnector = (PDREAMLIFTER_UCM_DEVICE) Connector;
+    BOOL ret;
 
     UNREFERENCED_PARAMETER(DriverGlobals);
 
@@ -110,6 +229,17 @@ NTSTATUS DlUcmConnectorTypeCAttach(
         DbgUcmGetPartner(pConnector->Partner)
     );
 
+    ret = DeviceIoControl(pConnector->ProxyDriverHandle, IOCTL_UCMPROXY_TYPEC_ATTACH,
+        (LPVOID) Params, sizeof(UCM_CONNECTOR_TYPEC_ATTACH_PARAMS),
+        NULL, 0,
+        NULL, NULL
+    );
+
+    if (!ret) {
+        printf("[ERROR] Proxy component reports failure, error %d\n", GetLastError());
+        return STATUS_UNSUCESSFUL;
+    }
+
     return STATUS_SUCCESS;
 }
 
@@ -121,6 +251,8 @@ NTSTATUS DlUcmConnectorTypeCDetach(
 )
 {
     PDREAMLIFTER_UCM_DEVICE pConnector = (PDREAMLIFTER_UCM_DEVICE)Connector;
+    UCHAR stub = 0;
+    BOOL ret;
 
     UNREFERENCED_PARAMETER(DriverGlobals);
 
@@ -142,6 +274,17 @@ NTSTATUS DlUcmConnectorTypeCDetach(
         RtlZeroMemory(&pConnector->PdRdo, sizeof(UCM_PD_REQUEST_DATA_OBJECT));
     }
 
+    ret = DeviceIoControl(pConnector->ProxyDriverHandle, IOCTL_UCMPROXY_TYPEC_DETACH,
+        (LPVOID) &stub, sizeof(UCHAR),
+        NULL, 0,
+        NULL, NULL
+    );
+
+    if (!ret) {
+        printf("[ERROR] Proxy component reports failure, error %d\n", GetLastError());
+        return STATUS_UNSUCESSFUL;
+    }
+
     printf("[INFO] Ucm reports Type-C detached\n");
     return STATUS_SUCCESS;
 }
@@ -156,6 +299,7 @@ NTSTATUS DlUcmConnectorTypeCCurrentAdChanged(
 )
 {
     PDREAMLIFTER_UCM_DEVICE pConnector = (PDREAMLIFTER_UCM_DEVICE)Connector;
+    BOOL ret;
 
     UNREFERENCED_PARAMETER(DriverGlobals);
 
@@ -166,6 +310,17 @@ NTSTATUS DlUcmConnectorTypeCCurrentAdChanged(
     printf("[INFO] Ucm reports power current change: %s\n",
         DbgUcmGetCurrent(pConnector->PowerCurrent)
     );
+
+    ret = DeviceIoControl(pConnector->ProxyDriverHandle, IOCTL_UCMPROXY_TYPEC_CURRENT_CHANGE,
+        (LPVOID) &((UCHAR) CurrentAdvertisement), sizeof(UCHAR),
+        NULL, 0,
+        NULL, NULL
+    );
+
+    if (!ret) {
+        printf("[ERROR] Proxy component reports failure, error %d\n", GetLastError());
+        return STATUS_UNSUCESSFUL;
+    }
 
     return STATUS_SUCCESS;
 }
@@ -182,6 +337,8 @@ NTSTATUS DlUcmConnectorPdSourceCaps(
 )
 {
     PDREAMLIFTER_UCM_DEVICE pConnector = (PDREAMLIFTER_UCM_DEVICE)Connector;
+    PROXY_POWER_CAPS_EXCHANGE_REQUEST Request;
+    BOOL ret;
 
     UNREFERENCED_PARAMETER(DriverGlobals);
 
@@ -199,6 +356,23 @@ NTSTATUS DlUcmConnectorPdSourceCaps(
         printf("\n");
     }
 
+    RtlZeroMemory(&Request, sizeof(PROXY_POWER_CAPS_EXCHANGE_REQUEST));
+
+    Request.Size = sizeof(PROXY_POWER_CAPS_EXCHANGE_REQUEST);
+    RtlCopyMemory(&Request.Pdos, Pdos, sizeof(UCM_PD_POWER_DATA_OBJECT) * PdoCount);
+    Request.PdoCount = PdoCount;
+
+    ret = DeviceIoControl(pConnector->ProxyDriverHandle, IOCTL_UCMPROXY_TYPEC_PD_SOURCE_CAPS,
+        (LPVOID) &Request, sizeof(PROXY_POWER_CAPS_EXCHANGE_REQUEST),
+        NULL, 0,
+        NULL, NULL
+    );
+
+    if (!ret) {
+        printf("[ERROR] Proxy component reports failure, error %d\n", GetLastError());
+        return STATUS_UNSUCESSFUL;
+    }
+
     return STATUS_SUCCESS;
 }
 
@@ -214,6 +388,8 @@ NTSTATUS DlUcmConnectorPdPartnerSourceCaps(
 )
 {
     PDREAMLIFTER_UCM_DEVICE pConnector = (PDREAMLIFTER_UCM_DEVICE)Connector;
+    PROXY_POWER_CAPS_EXCHANGE_REQUEST Request;
+    BOOL ret;
 
     UNREFERENCED_PARAMETER(DriverGlobals);
 
@@ -231,6 +407,23 @@ NTSTATUS DlUcmConnectorPdPartnerSourceCaps(
         printf("\n");
     }
 
+    RtlZeroMemory(&Request, sizeof(PROXY_POWER_CAPS_EXCHANGE_REQUEST));
+
+    Request.Size = sizeof(PROXY_POWER_CAPS_EXCHANGE_REQUEST);
+    RtlCopyMemory(&Request.Pdos, Pdos, sizeof(UCM_PD_POWER_DATA_OBJECT) * PdoCount);
+    Request.PdoCount = PdoCount;
+
+    ret = DeviceIoControl(pConnector->ProxyDriverHandle, IOCTL_UCMPROXY_TYPEC_PD_PARTNER_CAPS,
+        (LPVOID)&Request, sizeof(PROXY_POWER_CAPS_EXCHANGE_REQUEST),
+        NULL, 0,
+        NULL, NULL
+    );
+
+    if (!ret) {
+        printf("[ERROR] Proxy component reports failure, error %d\n", GetLastError());
+        return STATUS_UNSUCESSFUL;
+    }
+
     return STATUS_SUCCESS;
 }
 
@@ -244,6 +437,7 @@ NTSTATUS DlUcmConnectorPdConnectionStateChanged(
 )
 {
     PDREAMLIFTER_UCM_DEVICE pConnector = (PDREAMLIFTER_UCM_DEVICE)Connector;
+    BOOL ret;
 
     UNREFERENCED_PARAMETER(DriverGlobals);
 
@@ -259,6 +453,17 @@ NTSTATUS DlUcmConnectorPdConnectionStateChanged(
         DbgUcmGetChargingState(pConnector->ChargingState)
     );
 
+    ret = DeviceIoControl(pConnector->ProxyDriverHandle, IOCTL_UCMPROXY_TYPEC_PD_CONN_STATE_CHANGE,
+        (LPVOID) &Params, sizeof(UCM_CONNECTOR_PD_CONN_STATE_CHANGED_PARAMS),
+        NULL, 0,
+        NULL, NULL
+    );
+
+    if (!ret) {
+        printf("[ERROR] Proxy component reports failure, error %d\n", GetLastError());
+        return STATUS_UNSUCESSFUL;
+    }
+
     return STATUS_SUCCESS;
 }
 
@@ -272,6 +477,7 @@ NTSTATUS DlUcmConnectorChargingStateChanged(
 )
 {
     PDREAMLIFTER_UCM_DEVICE pConnector = (PDREAMLIFTER_UCM_DEVICE)Connector;
+    BOOL ret;
 
     UNREFERENCED_PARAMETER(DriverGlobals);
 
@@ -282,6 +488,17 @@ NTSTATUS DlUcmConnectorChargingStateChanged(
     printf("[INFO] Ucm reports charging state change: %s\n",
         DbgUcmGetChargingState(pConnector->ChargingState)
     );
+
+    ret = DeviceIoControl(pConnector->ProxyDriverHandle, IOCTL_UCMPROXY_TYPEC_CHARGING_STATE_CHANGE,
+        (LPVOID) &((UCHAR)ChargingState), sizeof(UCHAR),
+        NULL, 0,
+        NULL, NULL
+    );
+
+    if (!ret) {
+        printf("[ERROR] Proxy component reports failure, error %d\n", GetLastError());
+        return STATUS_UNSUCESSFUL;
+    }
 
     return STATUS_SUCCESS;
 }
@@ -298,6 +515,8 @@ NTSTATUS DlUcmConnectorDataDirectionChanged(
 )
 {
     PDREAMLIFTER_UCM_DEVICE pConnector = (PDREAMLIFTER_UCM_DEVICE)Connector;
+    PROXY_ROLE_CHANGE_REQUEST Request;
+    BOOL ret;
 
     UNREFERENCED_PARAMETER(DriverGlobals);
 
@@ -309,6 +528,21 @@ NTSTATUS DlUcmConnectorDataDirectionChanged(
         DbgUcmGetDataRole(pConnector->DataRole),
         Success
     );
+
+    RtlZeroMemory(&Request, sizeof(PROXY_ROLE_CHANGE_REQUEST));
+    Request.Role = CurrentDataRole;
+    Request.Success = Success;
+
+    ret = DeviceIoControl(pConnector->ProxyDriverHandle, IOCTL_UCMPROXY_TYPEC_DATA_DIRECTION_CHANGE,
+        (LPVOID)&Request, sizeof(PROXY_ROLE_CHANGE_REQUEST),
+        NULL, 0,
+        NULL, NULL
+    );
+
+    if (!ret) {
+        printf("[ERROR] Proxy component reports failure, error %d\n", GetLastError());
+        return STATUS_UNSUCESSFUL;
+    }
 
     return STATUS_SUCCESS;
 }
@@ -325,6 +559,8 @@ NTSTATUS DlUcmConnectorPowerDirectionChanged(
 )
 {
     PDREAMLIFTER_UCM_DEVICE pConnector = (PDREAMLIFTER_UCM_DEVICE)Connector;
+    PROXY_ROLE_CHANGE_REQUEST Request;
+    BOOL ret;
 
     UNREFERENCED_PARAMETER(DriverGlobals);
 
@@ -336,6 +572,21 @@ NTSTATUS DlUcmConnectorPowerDirectionChanged(
         DbgUcmGetPowerRole(pConnector->PowerRole),
         Success
     );
+
+    RtlZeroMemory(&Request, sizeof(PROXY_ROLE_CHANGE_REQUEST));
+    Request.Role = CurrentPowerRole;
+    Request.Success = Success;
+
+    ret = DeviceIoControl(pConnector->ProxyDriverHandle, IOCTL_UCMPROXY_TYPEC_POWER_DIRECTION_CHANGE,
+        (LPVOID)&Request, sizeof(PROXY_ROLE_CHANGE_REQUEST),
+        NULL, 0,
+        NULL, NULL
+    );
+
+    if (!ret) {
+        printf("[ERROR] Proxy component reports failure, error %d\n", GetLastError());
+        return STATUS_UNSUCESSFUL;
+    }
 
     return STATUS_SUCCESS;
 }

@@ -132,7 +132,7 @@ UcmProxyEvtIoDeviceControl(
         case IOCTL_UCMPROXY_TYPEC_ATTACH:
             status = UcmProxyConnectorTypeCAttach(device, (PUCM_CONNECTOR_TYPEC_ATTACH_PARAMS) Buffer);
             break;
-        case IOCTL_UCMPROXY_TYPEC_DETECH:
+        case IOCTL_UCMPROXY_TYPEC_DETACH:
             status = UcmProxyConnectorTypeCDetach(device);
             break;
         case IOCTL_UCMPROXY_TYPEC_CURRENT_CHANGE:
