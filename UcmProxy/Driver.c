@@ -61,7 +61,7 @@ UcmProxyEvtDeviceAdd(
     _Inout_ PWDFDEVICE_INIT DeviceInit
     )
 {
-    NTSTATUS status;
+    NTSTATUS status = STATUS_SUCCESS;
 
     UNREFERENCED_PARAMETER(Driver);
 

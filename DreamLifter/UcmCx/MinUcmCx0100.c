@@ -2,7 +2,7 @@
 
 #include <DreamLifter.h>
 
-#define DriverProxyPath L"\\\\?\\ROOT#TYC#0#{d1f8023f-f151-4747-8e8d-194b08d5e0ee}"
+#define DriverProxyPath L"\\\\.\\DlUcmProxyDevice"
 
 extern PDRIVER_INSTANCE g_pDriverInstance;
 extern PDREAMLIFTER_DEVICE g_pDevice;
@@ -129,7 +129,7 @@ NTSTATUS DlUcmCreateConnector(
         return STATUS_UNSUCESSFUL;
     }
 
-    printf("[INFO] Proxy event polling has started");
+    printf("[INFO] Proxy event polling has started\n");
 
     return STATUS_SUCCESS;
 }
@@ -142,9 +142,25 @@ DWORD WINAPI DlUcmPowerRoleEventWorker(
     UCHAR Role = 0;
     BOOL ret;
     NTSTATUS status;
+    HANDLE DeviceHandle;
+
+    DeviceHandle = CreateFile(
+        DriverProxyPath,
+        0,
+        FILE_SHARE_READ | FILE_SHARE_WRITE,
+        NULL,
+        OPEN_EXISTING,
+        0,
+        NULL
+    );
+
+    if (DeviceHandle == NULL) {
+        printf("[ERROR] UcmCx failed to open the driver component. Error %d\n", GetLastError());
+        return 6;
+    }
 
     while (TRUE) {
-        ret = DeviceIoControl(pDevice->UcmManagerInfo->ProxyDriverHandle, IOCTL_UCMPROXY_WAIT_SET_POWER_ROLE_CALLBACK,
+        ret = DeviceIoControl(DeviceHandle, IOCTL_UCMPROXY_WAIT_SET_POWER_ROLE_CALLBACK,
             NULL, 0,
             (LPVOID) &Role, sizeof(UCHAR),
             NULL, NULL
@@ -160,6 +176,7 @@ DWORD WINAPI DlUcmPowerRoleEventWorker(
         }
         else {
             printf("[ERROR] DlUcmPowerRoleEventWorker Proxy component reports failure, error %d\n", GetLastError());
+            break;
         }
 
         Role = 0;
@@ -176,9 +193,25 @@ DWORD WINAPI DlUcmDataRoleEventWorker(
     UCHAR Role = 0;
     BOOL ret;
     NTSTATUS status;
+    HANDLE DeviceHandle;
+
+    DeviceHandle = CreateFile(
+        DriverProxyPath,
+        FILE_READ_ATTRIBUTES | FILE_WRITE_ATTRIBUTES,
+        FILE_SHARE_READ | FILE_SHARE_WRITE,
+        NULL,
+        OPEN_EXISTING,
+        FILE_ATTRIBUTE_NORMAL,
+        NULL
+    );
+
+    if (DeviceHandle == NULL) {
+        printf("[ERROR] UcmCx failed to open the driver component. Error %d\n", GetLastError());
+        return 6;
+    }
 
     while (TRUE) {
-        ret = DeviceIoControl(pDevice->UcmManagerInfo->ProxyDriverHandle, IOCTL_UCMPROXY_WAIT_SET_DATA_ROLE_CALLBACK,
+        ret = DeviceIoControl(DeviceHandle, IOCTL_UCMPROXY_WAIT_SET_DATA_ROLE_CALLBACK,
             NULL, 0,
             (LPVOID)&Role, sizeof(UCHAR),
             NULL, NULL
@@ -194,6 +227,7 @@ DWORD WINAPI DlUcmDataRoleEventWorker(
         }
         else {
             printf("[ERROR] DlUcmDataRoleEventWorker Proxy component reports failure, error %d\n", GetLastError());
+            break;
         }
 
         Role = 0;

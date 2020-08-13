@@ -47,6 +47,14 @@ UcmProxyCreateDevice(
                 // Initialize the I/O Package and any Queues
                 //
                 status = UcmProxyQueueInitialize(device);
+
+                if (NT_SUCCESS(status)) {
+                    DECLARE_CONST_UNICODE_STRING(UcmProxyDosDeviceName, DOS_DEVICE_NAME);
+                    status = WdfDeviceCreateSymbolicLink(
+                        device,
+                        &UcmProxyDosDeviceName
+                    );
+                }
             }
         }
     }
