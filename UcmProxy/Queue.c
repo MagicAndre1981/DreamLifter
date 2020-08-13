@@ -180,7 +180,7 @@ NTSTATUS UcmProxyConnectorTypeCAttach(
 {
     PDEVICE_CONTEXT pContext = DeviceGetContext(Device);
 
-    if (Params->Size != sizeof(PUCM_CONNECTOR_TYPEC_ATTACH_PARAMS)) {
+    if (Params->Size != sizeof(UCM_CONNECTOR_TYPEC_ATTACH_PARAMS)) {
         return STATUS_INVALID_PARAMETER;
     }
 
