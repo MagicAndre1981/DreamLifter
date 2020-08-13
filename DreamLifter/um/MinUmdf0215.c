@@ -376,31 +376,9 @@ NTSTATUS DlWdfTimerCreate(
         return STATUS_NOT_SUPPORTED;
     }
 
-    pTimer->TimerHandle = CreateWaitableTimerW(
-        NULL,
-        TRUE,
-        NULL
-    );
-
-    if (pTimer->TimerHandle == NULL) {
-        OutputDebugString(L"[ERROR] Failed to create timer event\n");
-        free(pTimer);
-        return STATUS_INSUFFICIENT_RESOURCES;
-    }
-
     pTimer->AutomaticSerialization = Config->AutomaticSerialization;
     pTimer->EvtTimerFunc = Config->EvtTimerFunc;
     pTimer->ParentObject = Attributes->ParentObject;
-
-    // Spin up timer thread
-    CreateThread(
-        NULL,
-        0,
-        DlTimerThreadWorker,
-        pTimer,
-        0,
-        NULL
-    );
 
     *Timer = (WDFTIMER)pTimer;
     return STATUS_SUCCESS;
@@ -428,7 +406,7 @@ BOOLEAN DlWdfTimerStart(
 )
 {
     PDREAMLIFTER_TIMER pTimer = (PDREAMLIFTER_TIMER)Timer;
-    LARGE_INTEGER dueTime;
+    DWORD dueTime;
 
     UNREFERENCED_PARAMETER(DriverGlobals);
 
@@ -438,7 +416,7 @@ BOOLEAN DlWdfTimerStart(
 
     // Check the time and convert to Win32 thing
     if (DueTime < 0) {
-        dueTime.QuadPart = -DueTime;
+        dueTime = (DWORD) ((-DueTime * 100) / 1000000);
     }
     else {
         // Not yet seeing the use case here
@@ -451,46 +429,24 @@ BOOLEAN DlWdfTimerStart(
     }
 
     pTimer->Cancelled = FALSE;
-    return (BOOLEAN) SetWaitableTimer(pTimer->TimerHandle, &dueTime, 0, NULL, NULL, TRUE);
+    return (BOOLEAN) CreateTimerQueueTimer(
+        &pTimer->TimerHandle,
+        NULL,
+        DlTimerCallbackThreadWorker,
+        pTimer,
+        dueTime,
+        0,
+        WT_EXECUTEONLYONCE
+    );
 }
 
-DWORD WINAPI DlTimerThreadWorker(
-    LPVOID lpParam
-) {
-    PDREAMLIFTER_TIMER pTimer = (PDREAMLIFTER_TIMER) lpParam;
-    DWORD AsyncThreadId = 0;
-
-    if (pTimer != NULL) {
-        while (TRUE) {
-            // Wait for the timer event
-            WaitForSingleObject(pTimer->TimerHandle, INFINITE);
-            // Check: is this timer cancelled?
-            if (pTimer->Cancelled) {
-                goto cont;
-            }
-            // Push things in a new thread
-            CreateThread(
-                NULL,
-                0,
-                DlTimerCallbackThreadWorker,
-                pTimer,
-                0,
-                &AsyncThreadId
-            );
-        cont:
-            // Manually reset it (we don't support periodic timer)
-            ResetEvent(pTimer->TimerHandle);
-        }
-    }
-
-    return 0;
-}
-
-DWORD WINAPI DlTimerCallbackThreadWorker(
-    LPVOID lpParam
+VOID CALLBACK DlTimerCallbackThreadWorker(
+    _In_ PVOID   lpParameter,
+    _In_ BOOLEAN TimerOrWaitFired
 )
 {
-    PDREAMLIFTER_TIMER pTimer = (PDREAMLIFTER_TIMER) lpParam;
+    PDREAMLIFTER_TIMER pTimer = (PDREAMLIFTER_TIMER)lpParameter;
+    UNREFERENCED_PARAMETER(TimerOrWaitFired);
 
     if (pTimer->AutomaticSerialization) {
         // Take device mutex if needed
@@ -502,8 +458,6 @@ DWORD WINAPI DlTimerCallbackThreadWorker(
     if (pTimer->AutomaticSerialization) {
         ReleaseMutex(g_pDevice->SerializationMutex);
     }
-
-    return 0;
 }
 
 BOOLEAN DlWdfTimerStop(
@@ -521,9 +475,13 @@ BOOLEAN DlWdfTimerStop(
     // Technically we need to wait, but not in this case
     UNREFERENCED_PARAMETER(Wait);
 
-    if (pTimer != NULL && pTimer->TimerHandle != 0) {
+    if (pTimer != NULL && pTimer->TimerHandle != INVALID_HANDLE_VALUE) {
         pTimer->Cancelled = TRUE;
-        return (BOOLEAN) CancelWaitableTimer(pTimer->TimerHandle);
+        return (BOOLEAN)DeleteTimerQueueTimer(
+            NULL,
+            pTimer->TimerHandle,
+            NULL
+        );
     }
 
     return FALSE;

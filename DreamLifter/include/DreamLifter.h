@@ -261,12 +261,9 @@ BOOLEAN DlWdfTimerStart(
     LONGLONG DueTime
 );
 
-DWORD WINAPI DlTimerThreadWorker(
-    LPVOID lpParam
-);
-
-DWORD WINAPI DlTimerCallbackThreadWorker(
-    LPVOID lpParam
+VOID CALLBACK DlTimerCallbackThreadWorker(
+    _In_ PVOID   lpParameter,
+    _In_ BOOLEAN TimerOrWaitFired
 );
 
 BOOLEAN DlWdfTimerStop(

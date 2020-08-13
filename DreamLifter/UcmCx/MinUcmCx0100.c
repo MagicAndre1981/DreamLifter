@@ -263,6 +263,7 @@ NTSTATUS DlUcmConnectorTypeCAttach(
         DbgUcmGetPartner(pConnector->Partner)
     );
 
+    Params->Size = sizeof(UCM_CONNECTOR_TYPEC_ATTACH_PARAMS);
     ret = DeviceIoControl(pConnector->ProxyDriverHandle, IOCTL_UCMPROXY_TYPEC_ATTACH,
         (LPVOID) Params, sizeof(UCM_CONNECTOR_TYPEC_ATTACH_PARAMS),
         NULL, 0,
