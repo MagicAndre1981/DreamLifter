@@ -125,6 +125,7 @@ char* DbgUcmGetPdoType(UCM_PD_POWER_DATA_OBJECT_TYPE type) {
 }
 
 void DbgUcmDumpPdo(UCM_PD_POWER_DATA_OBJECT Pdo) {
+	printf(" PDO type: %d\n", Pdo.Common.Type);
 	if ((Pdo.Common.Type & UcmPdPdoTypeFixedSupply) != 0) {
 		printf(" UcmPdPdoTypeFixedSupply:\n");
 		printf("  MaximumCurrentIn10mA: %u\n", Pdo.FixedSupplyPdo.MaximumCurrentIn10mA);
