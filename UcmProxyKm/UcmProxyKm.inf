@@ -29,7 +29,7 @@ WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with
 %ManufacturerName%=Standard,NT$ARCH$
 
 [Standard.NT$ARCH$]
-%UcmProxyKm.DeviceDesc%=UcmProxyKm_Device, ROOT\TYC
+%UcmProxyKm.DeviceDesc%=UcmProxyKm_Device, ROOT\TYC2
 %UcmProxyKm.DeviceDesc%=UcmProxyKm_Device, ACPI\LUMI0002
 
 [UcmProxyKm_Device.NT]
