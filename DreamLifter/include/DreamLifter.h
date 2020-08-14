@@ -515,4 +515,6 @@ DWORD WINAPI DlUcmDataRoleEventWorker(
     LPVOID lpParam
 );
 
+int DlStartDriverHost();
+
 #endif

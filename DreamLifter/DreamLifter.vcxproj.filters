@@ -48,6 +48,9 @@
     <ClInclude Include="include\wdf\UcmCx\UcmFuncEnums0100.h">
       <Filter>Header Files\UcmCx</Filter>
     </ClInclude>
+    <ClInclude Include="include\DreamLifterService.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DreamLifter.c">

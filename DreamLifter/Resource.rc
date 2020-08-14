@@ -1,6 +1,6 @@
 // Microsoft Visual C++ generated resource script.
 //
-#include <resource.h>
+#include "resource.h"
 
 #define APSTUDIO_READONLY_SYMBOLS
 /////////////////////////////////////////////////////////////////////////////
@@ -51,8 +51,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,1
- PRODUCTVERSION 1,0,0,1
+ FILEVERSION 2,0,0,0
+ PRODUCTVERSION 2,0,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -68,13 +68,13 @@ BEGIN
         BLOCK "040904b0"
         BEGIN
             VALUE "CompanyName", "LumiaWoA authors"
-            VALUE "FileDescription", "DreamLifter UMDF driver host process"
-            VALUE "FileVersion", "1.0.0.1"
+            VALUE "FileDescription", "DreamLifter USB Type-C UMDF Driver Host Process"
+            VALUE "FileVersion", "2.0.0.0"
             VALUE "InternalName", "DreamLifter.exe"
             VALUE "LegalCopyright", "Copyright (C) 2020 LumiaWoA authors"
             VALUE "OriginalFilename", "DreamLifter.exe"
             VALUE "ProductName", "DreamLifter"
-            VALUE "ProductVersion", "1.0.0.1"
+            VALUE "ProductVersion", "2.0.0.0"
         END
     END
     BLOCK "VarFileInfo"
