@@ -92,7 +92,7 @@ UcmProxyPrepareHardware
 
     // Keep these consistent with stock driver
     UCM_CONNECTOR_CONFIG_INIT(&ucmConnectorConfig, 0);
-    UCM_CONNECTOR_TYPEC_CONFIG_INIT(&typeCConfig, UcmTypeCOperatingModeDrp, UcmPowerRoleSource | UcmPowerRoleSink);
+    UCM_CONNECTOR_TYPEC_CONFIG_INIT(&typeCConfig, UcmTypeCOperatingModeDrp, 0x7);
     UCM_CONNECTOR_PD_CONFIG_INIT(&pdConfig, UcmPowerRoleSink | UcmPowerRoleSource);
 
     // Event handler will forward things to userland

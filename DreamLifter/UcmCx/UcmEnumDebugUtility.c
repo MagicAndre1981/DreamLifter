@@ -126,18 +126,17 @@ char* DbgUcmGetPdoType(UCM_PD_POWER_DATA_OBJECT_TYPE type) {
 
 void DbgUcmDumpPdo(UCM_PD_POWER_DATA_OBJECT Pdo) {
 	printf(" PDO type: %d\n", Pdo.Common.Type);
-	if ((Pdo.Common.Type & UcmPdPdoTypeFixedSupply) != 0) {
-		printf(" UcmPdPdoTypeFixedSupply:\n");
-		printf("  MaximumCurrentIn10mA: %u\n", Pdo.FixedSupplyPdo.MaximumCurrentIn10mA);
-		printf("  VoltageIn50mV: %u\n", Pdo.FixedSupplyPdo.VoltageIn50mV);
-		printf("  PeakCurrent: %u\n", Pdo.FixedSupplyPdo.PeakCurrent);
-		printf("  DataRoleSwap: %u\n", Pdo.FixedSupplyPdo.DataRoleSwap);
-		printf("  UsbCommunicationCapable: %u\n", Pdo.FixedSupplyPdo.UsbCommunicationCapable);
-		printf("  ExternallyPowered: %u\n", Pdo.FixedSupplyPdo.ExternallyPowered);
-		printf("  UsbSuspendSupported: %u\n", Pdo.FixedSupplyPdo.UsbSuspendSupported);
-		printf("  DualRolePower: %u\n", Pdo.FixedSupplyPdo.DualRolePower);
-		printf("  FixedSupply: %u\n", Pdo.FixedSupplyPdo.FixedSupply);
-	}
+
+	printf(" UcmPdPdoTypeFixedSupply:\n");
+	printf("  MaximumCurrentIn10mA: %u\n", Pdo.FixedSupplyPdo.MaximumCurrentIn10mA);
+	printf("  VoltageIn50mV: %u\n", Pdo.FixedSupplyPdo.VoltageIn50mV);
+	printf("  PeakCurrent: %u\n", Pdo.FixedSupplyPdo.PeakCurrent);
+	printf("  DataRoleSwap: %u\n", Pdo.FixedSupplyPdo.DataRoleSwap);
+	printf("  UsbCommunicationCapable: %u\n", Pdo.FixedSupplyPdo.UsbCommunicationCapable);
+	printf("  ExternallyPowered: %u\n", Pdo.FixedSupplyPdo.ExternallyPowered);
+	printf("  UsbSuspendSupported: %u\n", Pdo.FixedSupplyPdo.UsbSuspendSupported);
+	printf("  DualRolePower: %u\n", Pdo.FixedSupplyPdo.DualRolePower);
+	printf("  FixedSupply: %u\n", Pdo.FixedSupplyPdo.FixedSupply);
 
 	if ((Pdo.Common.Type & UcmPdPdoTypeBatterySupply) != 0) {
 		printf(" UcmPdPdoTypeBatterySupply:\n");

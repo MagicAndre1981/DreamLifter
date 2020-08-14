@@ -167,7 +167,9 @@ DWORD WINAPI DlUcmPowerRoleEventWorker(
         );
 
         if (ret) {
+            printf("[INFO] EvtSetPowerRole is requested. New Role %s (%d). Event called.\n", DbgUcmGetPowerRole((UCM_POWER_ROLE)Role), Role);
             if (pDevice->UcmManagerInfo->PdConfig.EvtSetPowerRole != NULL) {
+                printf("[INFO] EvtSetPowerRole is firing.\n");
                 status = pDevice->UcmManagerInfo->PdConfig.EvtSetPowerRole((UCMCONNECTOR) pDevice->UcmManagerInfo, (UCM_POWER_ROLE) Role);
                 if (!NT_SUCCESS(status)) {
                     printf("[ERROR] EvtSetPowerRole failed 0x%x\n", status);
@@ -218,7 +220,9 @@ DWORD WINAPI DlUcmDataRoleEventWorker(
         );
 
         if (ret) {
+            printf("[INFO] EvtSetDataRole is requested. New Role %s (%d)\n", DbgUcmGetDataRole((UCM_POWER_ROLE)Role), Role);
             if (pDevice->UcmManagerInfo->TypeCConfig.EvtSetDataRole != NULL) {
+                printf("[INFO] EvtSetDataRole is firing.\n");
                 status = pDevice->UcmManagerInfo->TypeCConfig.EvtSetDataRole((UCMCONNECTOR)pDevice->UcmManagerInfo, (UCM_POWER_ROLE)Role);
                 if (!NT_SUCCESS(status)) {
                     printf("[ERROR] EvtSetDataRole failed 0x%x\n", status);
@@ -257,10 +261,13 @@ NTSTATUS DlUcmConnectorTypeCAttach(
         pConnector->Partner = Params->Partner;
     }
 
-    printf("[INFO] Ucm reports Type-C attached. Charging state %s, current %s, partner %s\n",
+    printf("[INFO] Ucm reports Type-C attached. Charging state %s (%d), current %s (%d), partner %s (%d)\n",
         DbgUcmGetChargingState(pConnector->ChargingState),
+        pConnector->ChargingState,
         DbgUcmGetCurrent(pConnector->PowerCurrent),
-        DbgUcmGetPartner(pConnector->Partner)
+        pConnector->PowerCurrent,
+        DbgUcmGetPartner(pConnector->Partner),
+        pConnector->Partner
     );
 
     Params->Size = sizeof(UCM_CONNECTOR_TYPEC_ATTACH_PARAMS);
@@ -342,8 +349,9 @@ NTSTATUS DlUcmConnectorTypeCCurrentAdChanged(
         pConnector->PowerCurrent = CurrentAdvertisement;
     }
 
-    printf("[INFO] Ucm reports power current change: %s\n",
-        DbgUcmGetCurrent(pConnector->PowerCurrent)
+    printf("[INFO] Ucm reports power current change: %s (%d)\n",
+        DbgUcmGetCurrent(pConnector->PowerCurrent),
+        pConnector->PowerCurrent
     );
 
     ret = DeviceIoControl(pConnector->ProxyDriverHandle, IOCTL_UCMPROXY_TYPEC_CURRENT_CHANGE,
@@ -483,9 +491,11 @@ NTSTATUS DlUcmConnectorPdConnectionStateChanged(
         RtlCopyMemory(&pConnector->PdRdo, &Params->Rdo, sizeof(UCM_PD_REQUEST_DATA_OBJECT));
     }
 
-    printf("[INFO] Ucm reports PD state change: PD state %s, Charging state %s\n",
+    printf("[INFO] Ucm reports PD state change: PD state %s (%d), Charging state %s (%d)\n",
         DbgUcmGetPdConnState(pConnector->PdConnState),
-        DbgUcmGetChargingState(pConnector->ChargingState)
+        pConnector->PdConnState,
+        DbgUcmGetChargingState(pConnector->ChargingState),
+        pConnector->ChargingState
     );
 
     ret = DeviceIoControl(pConnector->ProxyDriverHandle, IOCTL_UCMPROXY_TYPEC_PD_CONN_STATE_CHANGE,
@@ -520,8 +530,9 @@ NTSTATUS DlUcmConnectorChargingStateChanged(
         pConnector->ChargingState = ChargingState;
     }
 
-    printf("[INFO] Ucm reports charging state change: %s\n",
-        DbgUcmGetChargingState(pConnector->ChargingState)
+    printf("[INFO] Ucm reports charging state change: %s (%d)\n",
+        DbgUcmGetChargingState(pConnector->ChargingState),
+        pConnector->ChargingState
     );
 
     ret = DeviceIoControl(pConnector->ProxyDriverHandle, IOCTL_UCMPROXY_TYPEC_CHARGING_STATE_CHANGE,
@@ -559,8 +570,9 @@ NTSTATUS DlUcmConnectorDataDirectionChanged(
         pConnector->DataRole = CurrentDataRole;
     }
 
-    printf("[INFO] Ucm reports data role change: %s. Change state 0x%x.\n",
+    printf("[INFO] Ucm reports data role change: %s (%d). Change state 0x%x.\n",
         DbgUcmGetDataRole(pConnector->DataRole),
+        pConnector->DataRole,
         Success
     );
 
@@ -603,8 +615,9 @@ NTSTATUS DlUcmConnectorPowerDirectionChanged(
         pConnector->PowerRole = CurrentPowerRole;
     }
 
-    printf("[INFO] Ucm reports power role change: %s. Change state 0x%x.\n",
+    printf("[INFO] Ucm reports power role change: %s (%d). Change state 0x%x.\n",
         DbgUcmGetPowerRole(pConnector->PowerRole),
+        pConnector->PowerRole,
         Success
     );
 
