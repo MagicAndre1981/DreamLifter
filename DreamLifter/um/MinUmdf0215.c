@@ -320,6 +320,7 @@ NTSTATUS DlWdfRegistryQueryULong(
 )
 {
     UNICODE_STRING KeyEnableDisplay;
+    UNICODE_STRING KeyBootDelay;
 
     UNREFERENCED_PARAMETER(DriverGlobals);
 
@@ -328,10 +329,19 @@ NTSTATUS DlWdfRegistryQueryULong(
     }
 
     RtlInitUnicodeString(&KeyEnableDisplay, L"EnableDisplay");
+    RtlInitUnicodeString(&KeyBootDelay, L"BootDelay");
+
     if (RtlEqualUnicodeString(&KeyEnableDisplay, ValueName, FALSE)) {
         printf("[INFO] WdfRegistryQueryUlong requesting EnableDisplay key. Returns 0 to disable HDMI control\n");
         OutputDebugString(L"[INFO] WdfRegistryQueryUlong requesting EnableDisplay key. Returns 0 to disable HDMI control\n");
         *Value = 0;
+        return STATUS_SUCCESS;
+    }
+
+    if (RtlEqualUnicodeString(&KeyBootDelay, ValueName, FALSE)) {
+        printf("[INFO] WdfRegistryQueryUlong requesting BootDelay key. Returns 50 for immediately start\n");
+        OutputDebugString(L"[INFO] WdfRegistryQueryUlong requesting BootDelay key. Returns 50 for immediately start\n");
+        *Value = 50;
         return STATUS_SUCCESS;
     }
 
