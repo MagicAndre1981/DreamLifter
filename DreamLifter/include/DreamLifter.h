@@ -1,4 +1,5 @@
 #pragma once
+
 #ifndef _DREAMLIFTER_H_
 #define _DREAMLIFTER_H_
 
@@ -8,6 +9,7 @@
 #include <stdlib.h>
 #include <Windows.h>
 #include <winternl.h>
+#include <wintrust.h>
 
 #include <MinUmdfLoaderInterface.h>
 
@@ -18,6 +20,7 @@
 #include <wdf/UcmCx/MinUcmCx0100.h>
 
 #define GUEST_DRIVER_NAME "DreamLifterGuest"
+#define DL_KM_LOADER "--km"
 
 #define STATUS_SUCCESS                   ((NTSTATUS)0x00000000L)    // ntsubauth
 #define STATUS_INSUFFICIENT_RESOURCES    ((NTSTATUS)0xC000009AL)
@@ -516,5 +519,13 @@ DWORD WINAPI DlUcmDataRoleEventWorker(
 );
 
 int DlStartDriverHost();
+
+void DlKmLoaderStart();
+void DlKmImplementationStub();
+
+inline void CpuDeadLoop()
+{
+    while (TRUE) { ; }
+}
 
 #endif

@@ -51,6 +51,9 @@
     <ClInclude Include="include\DreamLifterService.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\DreamLifterKmLoader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DreamLifter.c">
@@ -64,6 +67,9 @@
     </ClCompile>
     <ClCompile Include="UcmCx\UcmEnumDebugUtility.c">
       <Filter>Source Files\UcmCx</Filter>
+    </ClCompile>
+    <ClCompile Include="KmCodeLoader.c">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

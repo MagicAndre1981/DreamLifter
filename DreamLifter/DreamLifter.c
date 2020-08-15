@@ -12,6 +12,7 @@ PDRIVER_INSTANCE g_pDriverInstance;
 PDREAMLIFTER_DEVICE g_pDevice;
 
 BOOLEAN g_bStartAsStandaloneApp = FALSE;
+BOOLEAN g_bStartKmLoader = FALSE;
 SERVICE_STATUS        g_ServiceStatus = { 0 };
 SERVICE_STATUS_HANDLE g_StatusHandle = NULL;
 HANDLE                g_ServiceStopEvent = INVALID_HANDLE_VALUE;
@@ -27,8 +28,15 @@ int main(int argc, char* argv[])
     for (int i = 0; i < argc; i++) {
         if (strcmp(DL_STANDALONE_SWITCH, argv[i]) == 0) {
             g_bStartAsStandaloneApp = TRUE;
-            break;
         }
+        else if (strcmp(DL_KM_LOADER, argv[i]) == 0) {
+            g_bStartKmLoader = TRUE;
+        }
+    }
+
+    if (g_bStartKmLoader) {
+        DlKmLoaderStart();
+        return 0;
     }
 
     if (!g_bStartAsStandaloneApp) {
@@ -219,7 +227,9 @@ exit:
     return err;
 }
 
-VOID WINAPI ServiceMain(DWORD argc, LPTSTR* argv)
+VOID WINAPI ServiceMain(
+    DWORD argc, LPTSTR* argv
+)
 {
     UNREFERENCED_PARAMETER(argc);
     UNREFERENCED_PARAMETER(argv);
@@ -308,7 +318,9 @@ EXIT:
     return;
 }
 
-VOID WINAPI ServiceCtrlHandler(DWORD CtrlCode)
+VOID WINAPI ServiceCtrlHandler(
+    DWORD CtrlCode
+)
 {
     switch (CtrlCode)
     {
@@ -341,7 +353,9 @@ VOID WINAPI ServiceCtrlHandler(DWORD CtrlCode)
     }
 }
 
-DWORD WINAPI ServiceWorkerThread(LPVOID lpParam)
+DWORD WINAPI ServiceWorkerThread(
+    LPVOID lpParam
+)
 {
     errno_t ret;
 

@@ -319,6 +319,7 @@ NTSTATUS DlWdfRegistryQueryULong(
     PULONG Value
 )
 {
+#if !defined(_X86_)
     UNICODE_STRING KeyEnableDisplay;
     UNICODE_STRING KeyBootDelay;
 
@@ -330,6 +331,7 @@ NTSTATUS DlWdfRegistryQueryULong(
 
     RtlInitUnicodeString(&KeyEnableDisplay, L"EnableDisplay");
     RtlInitUnicodeString(&KeyBootDelay, L"BootDelay");
+
 
     if (RtlEqualUnicodeString(&KeyEnableDisplay, ValueName, FALSE)) {
         printf("[INFO] WdfRegistryQueryUlong requesting EnableDisplay key. Returns 0 to disable HDMI control\n");
@@ -344,6 +346,12 @@ NTSTATUS DlWdfRegistryQueryULong(
         *Value = 50;
         return STATUS_SUCCESS;
     }
+#else
+    UNREFERENCED_PARAMETER(DriverGlobals);
+    UNREFERENCED_PARAMETER(Key);
+    UNREFERENCED_PARAMETER(ValueName);
+    UNREFERENCED_PARAMETER(Value);
+#endif
 
     return STATUS_OBJECT_NAME_NOT_FOUND;
 }

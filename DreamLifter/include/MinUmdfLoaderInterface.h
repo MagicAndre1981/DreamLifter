@@ -94,4 +94,11 @@ NTSTATUS
     _In_ PUNICODE_STRING RegistryPath
     );
 
+typedef
+NTSTATUS
+(*PFN_WDM_DRIVER_ENTRY)(
+    _In_ PVOID DriverObject,
+    _In_ PUNICODE_STRING RegistryPath
+    );
+
 #endif
