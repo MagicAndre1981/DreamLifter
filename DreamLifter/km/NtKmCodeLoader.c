@@ -339,7 +339,6 @@ PDRIVER_MODULE DlKmLoadModule()
 					if (strcmp(f->FunctionName, functionName) == 0) {
 						bFound = TRUE;
 						pAddrThunk->u1.Function = (UINT_PTR) f->Entry;
-						printf("[INFO] Import %s from %s, link it to internal implementation\n", functionName, szLibraryName);
 						break;
 					}
 					f++;
@@ -347,7 +346,7 @@ PDRIVER_MODULE DlKmLoadModule()
 			}
 
 			if (!bFound) {
-				printf("[INFO] Import %s from %s, link it to DlKmImplementationStub\n", functionName, szLibraryName);
+				printf("[WARN] Missing import %s from %s, link it to DlKmImplementationStub\n", functionName, szLibraryName);
 				pAddrThunk->u1.Function = (UINT_PTR)(PVOID)DlKmImplementationStub;
 			}
 

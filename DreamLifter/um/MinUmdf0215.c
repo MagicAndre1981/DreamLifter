@@ -5,35 +5,6 @@
 extern PDRIVER_INSTANCE g_pDriverInstance;
 extern PDREAMLIFTER_DEVICE g_pDevice;
 
-NTSTATUS DlWdfCreateDeviceInterface(
-    _In_
-    PWDF_DRIVER_GLOBALS DriverGlobals,
-    _In_
-    WDFDEVICE Device,
-    _In_
-    CONST GUID* InterfaceClassGUID,
-    _In_opt_
-    PCUNICODE_STRING ReferenceString
-)
-{
-    UNREFERENCED_PARAMETER(DriverGlobals);
-    UNREFERENCED_PARAMETER(ReferenceString);
-
-    if (Device == NULL || InterfaceClassGUID == NULL) {
-        return STATUS_INVALID_PARAMETER;
-    }
-
-    printf("[INFO] Creating device interface {%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX}. This is currently a no-op\n",
-        InterfaceClassGUID->Data1, InterfaceClassGUID->Data2, InterfaceClassGUID->Data3,
-        InterfaceClassGUID->Data4[0], InterfaceClassGUID->Data4[1],
-        InterfaceClassGUID->Data4[2], InterfaceClassGUID->Data4[3],
-        InterfaceClassGUID->Data4[4], InterfaceClassGUID->Data4[5],
-        InterfaceClassGUID->Data4[6], InterfaceClassGUID->Data4[7]
-    );
-
-    return STATUS_SUCCESS;
-}
-
 void DlWdfRequestComplete(
     _In_
     PWDF_DRIVER_GLOBALS DriverGlobals,
@@ -46,29 +17,6 @@ void DlWdfRequestComplete(
     UNREFERENCED_PARAMETER(DriverGlobals);
     
     printf("[INFO] Completing request %p with status 0x%x. This is currently a no-op\n", Request, Status);
-}
-
-NTSTATUS DlWdfIoQueueCreate(
-    _In_
-    PWDF_DRIVER_GLOBALS DriverGlobals,
-    _In_
-    WDFDEVICE Device,
-    _In_
-    PWDF_IO_QUEUE_CONFIG Config,
-    _In_opt_
-    PWDF_OBJECT_ATTRIBUTES QueueAttributes,
-    _Out_opt_
-    WDFQUEUE* Queue
-)
-{
-    UNREFERENCED_PARAMETER(DriverGlobals);
-    UNREFERENCED_PARAMETER(Device);
-    UNREFERENCED_PARAMETER(Config);
-    UNREFERENCED_PARAMETER(QueueAttributes);
-    UNREFERENCED_PARAMETER(Queue);
-
-    printf("[INFO] Creating queue is currently a no-op\n");
-    return STATUS_SUCCESS;
 }
 
 NTSTATUS DlWdfDriverOpenParametersRegistryKey(

@@ -176,6 +176,9 @@
     <ClCompile Include="km\NtKmCodeLoader.c">
       <Filter>Source Files\User-mode Kernel\Km</Filter>
     </ClCompile>
+    <ClCompile Include="NtRoutine\Po.c">
+      <Filter>Source Files\User-mode Kernel\NtRoutine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">

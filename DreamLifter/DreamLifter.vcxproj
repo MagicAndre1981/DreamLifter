@@ -353,6 +353,7 @@
     <ClCompile Include="NtRoutine\Io.c" />
     <ClCompile Include="NtRoutine\Ke.c" />
     <ClCompile Include="NtRoutine\Mm.c" />
+    <ClCompile Include="NtRoutine\Po.c" />
     <ClCompile Include="NtRoutine\Ps.c" />
     <ClCompile Include="NtRoutine\Rtl.c" />
     <ClCompile Include="NtRoutine\Wmi.c" />

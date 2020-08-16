@@ -18,6 +18,7 @@ extern NTSYSAPI BOOLEAN RtlEqualUnicodeString(
 );
 
 typedef PVOID WDF_COMPONENT_GLOBALS, * PWDF_COMPONENT_GLOBALS;
+typedef LARGE_INTEGER PHYSICAL_ADDRESS, * PPHYSICAL_ADDRESS;
 
 DECLARE_HANDLE(WDFOBJECT);
 DECLARE_HANDLE(WDFDEVICE);
@@ -25,6 +26,7 @@ DECLARE_HANDLE(WDFDEVICE);
 DECLARE_HANDLE(WDFREQUEST);
 
 DECLARE_HANDLE(WDFSPINLOCK);
+DECLARE_HANDLE(WDFWAITLOCK);
 
 DECLARE_HANDLE(WDFIORESREQLIST);
 DECLARE_HANDLE(WDFIORESLIST);
@@ -37,6 +39,8 @@ DECLARE_HANDLE(WDFTIMER);
 DECLARE_HANDLE(WDFWORKITEM);
 
 DECLARE_HANDLE(WDFFILEOBJECT);
+
+DECLARE_HANDLE(WDFINTERRUPT);
 
 typedef PVOID PDRIVER_OBJECT;
 typedef PVOID PDEVICE_OBJECT;
@@ -109,6 +113,157 @@ typedef struct _WDF_OBJECT_CONTEXT_TYPE_INFO {
     PCWDF_OBJECT_CONTEXT_TYPE_INFO UniqueType;
     PFN_GET_UNIQUE_CONTEXT_TYPE    EvtDriverGetUniqueContextType;
 } WDF_OBJECT_CONTEXT_TYPE_INFO, * PWDF_OBJECT_CONTEXT_TYPE_INFO;
+
+#pragma pack(push,4)
+#pragma warning(disable:4201)
+typedef struct _CM_PARTIAL_RESOURCE_DESCRIPTOR {
+    UCHAR Type;
+    UCHAR ShareDisposition;
+    USHORT Flags;
+    union {
+
+        //
+        // Range of resources, inclusive.  These are physical, bus relative.
+        // It is known that Port and Memory below have the exact same layout
+        // as Generic.
+        //
+
+        struct {
+            PHYSICAL_ADDRESS Start;
+            ULONG Length;
+        } Generic;
+
+        //
+        //
+
+        struct {
+            PHYSICAL_ADDRESS Start;
+            ULONG Length;
+        } Port;
+
+        //
+        //
+
+        struct {
+            ULONG Level;
+            ULONG Vector;
+            KAFFINITY Affinity;
+        } Interrupt;
+
+        //
+        // Values for message signaled interrupts are distinct in the
+        // raw and translated cases.
+        //
+
+        struct {
+            union {
+                struct {
+                    USHORT Reserved;
+                    USHORT MessageCount;
+                    ULONG Vector;
+                    KAFFINITY Affinity;
+                } Raw;
+
+                struct {
+                    ULONG Level;
+                    ULONG Vector;
+                    KAFFINITY Affinity;
+                } Translated;
+            } DUMMYUNIONNAME;
+        } MessageInterrupt;
+
+        //
+        // Range of memory addresses, inclusive. These are physical, bus
+        // relative. The value should be the same as the one passed to
+        // HalTranslateBusAddress().
+        //
+
+        struct {
+            PHYSICAL_ADDRESS Start;    // 64 bit physical addresses.
+            ULONG Length;
+        } Memory;
+
+        //
+        // Physical DMA channel.
+        //
+
+        struct {
+            ULONG Channel;
+            ULONG Port;
+            ULONG Reserved1;
+        } Dma;
+
+        struct {
+            ULONG Channel;
+            ULONG RequestLine;
+            UCHAR TransferWidth;
+            UCHAR Reserved1;
+            UCHAR Reserved2;
+            UCHAR Reserved3;
+        } DmaV3;
+
+        //
+        // Device driver private data, usually used to help it figure
+        // what the resource assignments decisions that were made.
+        //
+
+        struct {
+            ULONG Data[3];
+        } DevicePrivate;
+
+        //
+        // Bus Number information.
+        //
+
+        struct {
+            ULONG Start;
+            ULONG Length;
+            ULONG Reserved;
+        } BusNumber;
+
+        //
+        // Device Specific information defined by the driver.
+        // The DataSize field indicates the size of the data in bytes. The
+        // data is located immediately after the DeviceSpecificData field in
+        // the structure.
+        //
+
+        struct {
+            ULONG DataSize;
+            ULONG Reserved1;
+            ULONG Reserved2;
+        } DeviceSpecificData;
+
+        // The following structures provide support for memory-mapped
+        // IO resources greater than MAXULONG
+        struct {
+            PHYSICAL_ADDRESS Start;
+            ULONG Length40;
+        } Memory40;
+
+        struct {
+            PHYSICAL_ADDRESS Start;
+            ULONG Length48;
+        } Memory48;
+
+        struct {
+            PHYSICAL_ADDRESS Start;
+            ULONG Length64;
+        } Memory64;
+
+        struct {
+            UCHAR Class;
+            UCHAR Type;
+            UCHAR Reserved1;
+            UCHAR Reserved2;
+            ULONG IdLowPart;
+            ULONG IdHighPart;
+        } Connection;
+
+    } u;
+} CM_PARTIAL_RESOURCE_DESCRIPTOR, * PCM_PARTIAL_RESOURCE_DESCRIPTOR;
+#pragma warning(default:4201)
+#pragma pack(pop)
 
 typedef struct _WDF_OBJECT_ATTRIBUTES* PWDF_OBJECT_ATTRIBUTES;
 typedef struct _WDF_OBJECT_ATTRIBUTES {
@@ -1214,6 +1369,152 @@ NTSTATUS DlWdfDeviceCreate(
     PWDF_OBJECT_ATTRIBUTES DeviceAttributes,
     _Out_
     WDFDEVICE* Device
+);
+
+void DlWdfDeviceInitSetPnpPowerEventCallbacks(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    PVOID DeviceInit,
+    _In_
+    PWDF_PNPPOWER_EVENT_CALLBACKS PnpPowerEventCallbacks
+);
+
+NTSTATUS DlWdfCreateDeviceInterface(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFDEVICE Device,
+    _In_
+    CONST GUID* InterfaceClassGUID,
+    _In_opt_
+    PCUNICODE_STRING ReferenceString
+);
+
+NTSTATUS DlWdfDeviceCreateSymbolicLink(
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    WDFDEVICE        Device,
+    PCUNICODE_STRING SymbolicLinkName
+);
+
+typedef
+BOOLEAN
+EVT_WDF_INTERRUPT_ISR(
+    _In_
+    WDFINTERRUPT Interrupt,
+    _In_
+    ULONG MessageID
+);
+
+typedef EVT_WDF_INTERRUPT_ISR* PFN_WDF_INTERRUPT_ISR;
+
+typedef
+NTSTATUS
+EVT_WDF_INTERRUPT_ENABLE(
+    _In_
+    WDFINTERRUPT Interrupt,
+    _In_
+    WDFDEVICE AssociatedDevice
+);
+
+typedef EVT_WDF_INTERRUPT_ENABLE* PFN_WDF_INTERRUPT_ENABLE;
+
+typedef
+NTSTATUS
+EVT_WDF_INTERRUPT_DISABLE(
+    _In_
+    WDFINTERRUPT Interrupt,
+    _In_
+    WDFDEVICE AssociatedDevice
+);
+
+typedef EVT_WDF_INTERRUPT_DISABLE* PFN_WDF_INTERRUPT_DISABLE;
+
+typedef
+VOID
+EVT_WDF_INTERRUPT_DPC(
+    _In_
+    WDFINTERRUPT Interrupt,
+    _In_
+    WDFOBJECT AssociatedObject
+);
+
+typedef EVT_WDF_INTERRUPT_DPC* PFN_WDF_INTERRUPT_DPC;
+
+typedef
+VOID
+EVT_WDF_INTERRUPT_WORKITEM(
+    _In_
+    WDFINTERRUPT Interrupt,
+    _In_
+    WDFOBJECT AssociatedObject
+);
+
+typedef EVT_WDF_INTERRUPT_WORKITEM* PFN_WDF_INTERRUPT_WORKITEM;
+
+typedef struct _DL_WDF_INTERRUPT {
+    DREAMLIFTER_WDF_OBJECT_HEADER Header;
+    WDFDEVICE AssociatedDevice;
+    PFN_WDF_INTERRUPT_ISR EvtInterruptIsr;
+    PFN_WDF_INTERRUPT_ENABLE EvtInterruptEnable;
+    PFN_WDF_INTERRUPT_DISABLE EvtInterruptDisable;
+} DL_WDF_INTERRUPT, *PDL_WDF_INTERRUPT;
+
+typedef struct _WDF_INTERRUPT_CONFIG {
+    ULONG                           Size;
+    WDFSPINLOCK                     SpinLock;
+    WDF_TRI_STATE                   ShareVector;
+    BOOLEAN                         FloatingSave;
+    BOOLEAN                         AutomaticSerialization;
+    PFN_WDF_INTERRUPT_ISR           EvtInterruptIsr;
+    PFN_WDF_INTERRUPT_DPC           EvtInterruptDpc;
+    PFN_WDF_INTERRUPT_ENABLE        EvtInterruptEnable;
+    PFN_WDF_INTERRUPT_DISABLE       EvtInterruptDisable;
+    PFN_WDF_INTERRUPT_WORKITEM      EvtInterruptWorkItem;
+    PCM_PARTIAL_RESOURCE_DESCRIPTOR InterruptRaw;
+    PCM_PARTIAL_RESOURCE_DESCRIPTOR InterruptTranslated;
+    WDFWAITLOCK                     WaitLock;
+    BOOLEAN                         PassiveHandling;
+    WDF_TRI_STATE                   ReportInactiveOnPowerDown;
+    BOOLEAN                         CanWakeDevice;
+} WDF_INTERRUPT_CONFIG, * PWDF_INTERRUPT_CONFIG;
+
+NTSTATUS DlWdfInterruptCreate(
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    WDFDEVICE              Device,
+    PWDF_INTERRUPT_CONFIG  Configuration,
+    PWDF_OBJECT_ATTRIBUTES Attributes,
+    WDFINTERRUPT* Interrupt
+);
+
+void DlWdfInterruptEnable(
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    WDFINTERRUPT Interrupt
+);
+
+void DlWdfInterruptDisable(
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    WDFINTERRUPT Interrupt
+);
+
+typedef struct _DL_WDF_QUEUE {
+    DREAMLIFTER_WDF_OBJECT_HEADER Header;
+    WDFDEVICE AssociatedDevice;
+    PFN_WDF_IO_QUEUE_IO_DEVICE_CONTROL          EvtIoDeviceControl;
+    PFN_WDF_IO_QUEUE_IO_CANCELED_ON_QUEUE       EvtIoCanceledOnQueue;
+} DL_WDF_QUEUE, *PDL_WDF_QUEUE;
+
+NTSTATUS DlWdfIoQueueCreate(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFDEVICE Device,
+    _In_
+    PWDF_IO_QUEUE_CONFIG Config,
+    _In_opt_
+    PWDF_OBJECT_ATTRIBUTES QueueAttributes,
+    _Out_opt_
+    WDFQUEUE* Queue
 );
 
 #endif

@@ -49,3 +49,15 @@ PWDFDEVICE_INIT DlWdfControlDeviceInitAllocate(
 
 	return (PWDFDEVICE_INIT)pDlDriverInit;
 }
+
+PDEVICE_OBJECT DlWdfDeviceWdmGetDeviceObject(
+	PWDF_DRIVER_GLOBALS  DriverGlobals,
+	WDFDEVICE Device
+)
+{
+	UNREFERENCED_PARAMETER(DriverGlobals);
+	UNREFERENCED_PARAMETER(Device);
+
+	// This is a stub
+	return (PDEVICE_OBJECT) Device;
+}

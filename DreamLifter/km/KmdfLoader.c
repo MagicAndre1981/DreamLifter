@@ -18,6 +18,8 @@ PVOID DlFxLdrGetWdfKmdf0115Functions()
 	g_WdfFunctions0115[WdfDeviceInitSetPnpPowerEventCallbacksTableIndex] = (PVOID)DlWdfDeviceInitSetPnpPowerEventCallbacks;
 	g_WdfFunctions0115[WdfDeviceInitSetFileObjectConfigTableIndex] = (PVOID)DlWdfDeviceInitSetFileObjectConfig;
 	g_WdfFunctions0115[WdfDeviceCreateTableIndex] = (PVOID)DlWdfDeviceCreate;
+	g_WdfFunctions0115[WdfDeviceCreateDeviceInterfaceTableIndex] = (PVOID)DlWdfCreateDeviceInterface;
+	g_WdfFunctions0115[WdfDeviceCreateSymbolicLinkTableIndex] = (PVOID)DlWdfDeviceCreateSymbolicLink;
 
 	g_WdfFunctions0115[WdfObjectGetTypedContextWorkerTableIndex] = (PVOID) DlWdfObjectGetTypedContextWorker;
 
@@ -33,6 +35,14 @@ PVOID DlFxLdrGetWdfKmdf0115Functions()
 	g_WdfFunctions0115[WdfWorkItemCreateTableIndex] = (PVOID)DlWdfWorkItemCreate;
 	g_WdfFunctions0115[WdfWorkItemGetParentObjectTableIndex] = (PVOID)DlWdfWorkItemGetParentObject;
 	g_WdfFunctions0115[WdfWorkItemEnqueueTableIndex] = (PVOID)DlWdfWorkItemEnqueue;
+
+	g_WdfFunctions0115[WdfInterruptCreateTableIndex] = (PVOID) DlWdfInterruptCreate;
+	g_WdfFunctions0115[WdfInterruptEnableTableIndex] = (PVOID) DlWdfInterruptEnable;
+	g_WdfFunctions0115[WdfInterruptDisableTableIndex] = (PVOID) DlWdfInterruptDisable;
+
+	g_WdfFunctions0115[WdfIoQueueCreateTableIndex] = (PVOID)DlWdfIoQueueCreate;
+
+	g_WdfFunctions0115[WdfDeviceWdmGetDeviceObjectTableIndex] = (PVOID) DlWdfDeviceWdmGetDeviceObject;
 
 	return (PVOID)g_WdfFunctions0115;
 }

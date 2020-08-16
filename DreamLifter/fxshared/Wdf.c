@@ -251,10 +251,12 @@ NTSTATUS DlWdfWorkItemCreate(
     pWorkItem->Header.Magic = DREAMLIFTER_OBJECT_HEADER_MAGIC;
     pWorkItem->Header.Type = DlObjectTypeWorkItem;
 
-    if (Config->AutomaticSerialization == TRUE) {
-        OutputDebugString(L"[ERROR] The workitem serialization mode is not yet supported\n");
-        free(pWorkItem);
-        return STATUS_NOT_SUPPORTED;
+    if (Config->AutomaticSerialization == TRUE && Attributes->ParentObject != NULL) {
+        if (((PDREAMLIFTER_WDF_OBJECT_HEADER)Attributes->ParentObject)->Type != DlObjectTypeDeviceInstance) {
+            OutputDebugString(L"[ERROR] The workitem serialization mode is not yet supported\n");
+            free(pWorkItem);
+            return STATUS_NOT_SUPPORTED;
+        }
     }
 
     if (Attributes->ContextTypeInfo != NULL) {
@@ -327,8 +329,17 @@ DWORD WINAPI DlWdfWorkItemThreadWorker(
     LPVOID lpParam
 )
 {
-    PDREAMLIFTER_WORKITEM pWorkItem = (PDREAMLIFTER_WORKITEM)lpParam;
+    PDREAMLIFTER_WORKITEM pWorkItem = (PDREAMLIFTER_WORKITEM) lpParam;
+
+    if (pWorkItem->AutomaticSerialization && pWorkItem->ParentObject != NULL) {
+        WaitForSingleObject(((PDREAMLIFTER_DEVICE)pWorkItem->ParentObject)->SerializationMutex, INFINITE);
+    }
+
     pWorkItem->EvtWorkItemFunc((WDFWORKITEM)pWorkItem);
+
+    if (pWorkItem->AutomaticSerialization && pWorkItem->ParentObject != NULL) {
+        ReleaseMutex(((PDREAMLIFTER_DEVICE)pWorkItem->ParentObject)->SerializationMutex);
+    }
     return 0;
 }
 
@@ -514,4 +525,170 @@ PVOID DlWdfObjectGetTypedContextWorker(
 
     TrapDebugger("[ERROR] Attempt to access invalid WDF context\n");
     return NULL;
+}
+
+NTSTATUS DlWdfCreateDeviceInterface(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFDEVICE Device,
+    _In_
+    CONST GUID* InterfaceClassGUID,
+    _In_opt_
+    PCUNICODE_STRING ReferenceString
+)
+{
+    UNREFERENCED_PARAMETER(DriverGlobals);
+    UNREFERENCED_PARAMETER(ReferenceString);
+
+    if (Device == NULL || InterfaceClassGUID == NULL) {
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    printf("[INFO] Creating device interface {%08lX-%04hX-%04hX-%02hhX%02hhX-%02hhX%02hhX%02hhX%02hhX%02hhX%02hhX}. This is currently a no-op\n",
+        InterfaceClassGUID->Data1, InterfaceClassGUID->Data2, InterfaceClassGUID->Data3,
+        InterfaceClassGUID->Data4[0], InterfaceClassGUID->Data4[1],
+        InterfaceClassGUID->Data4[2], InterfaceClassGUID->Data4[3],
+        InterfaceClassGUID->Data4[4], InterfaceClassGUID->Data4[5],
+        InterfaceClassGUID->Data4[6], InterfaceClassGUID->Data4[7]
+    );
+
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS DlWdfDeviceCreateSymbolicLink(
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    WDFDEVICE        Device,
+    PCUNICODE_STRING SymbolicLinkName
+)
+{
+    UNREFERENCED_PARAMETER(DriverGlobals);
+    UNREFERENCED_PARAMETER(Device);
+
+    wprintf(L"[INFO] Creating device symbolic link %s. This is currently a no-op\n",
+        SymbolicLinkName->Buffer
+    );
+
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS DlWdfInterruptCreate(
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    WDFDEVICE              Device,
+    PWDF_INTERRUPT_CONFIG  Configuration,
+    PWDF_OBJECT_ATTRIBUTES Attributes,
+    WDFINTERRUPT* Interrupt
+)
+{
+    PDREAMLIFTER_DEVICE pDevice = (PDREAMLIFTER_DEVICE) Device;
+
+    UNREFERENCED_PARAMETER(DriverGlobals);
+    UNREFERENCED_PARAMETER(Attributes);
+
+    if (Configuration == NULL || pDevice == NULL || Interrupt == NULL) {
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    if (pDevice->Interrupt != NULL) {
+        printf("[ERROR] DreamLifter only supports a single interrupt yet\n");
+        return STATUS_NOT_SUPPORTED;
+    }
+
+    if (!Configuration->PassiveHandling) {
+        printf("[ERROR] DreamLifter only supports passive level interrupt\n");
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    pDevice->Interrupt = malloc(sizeof(DL_WDF_INTERRUPT));
+    if (pDevice->Interrupt == NULL) {
+        printf("[ERROR] Failed to allocate resources for interrupt\n");
+        return STATUS_INSUFFICIENT_RESOURCES;
+    }
+
+    RtlZeroMemory(pDevice->Interrupt, sizeof(DL_WDF_INTERRUPT));
+    pDevice->Interrupt->Header.Magic = DREAMLIFTER_OBJECT_HEADER_MAGIC;
+    pDevice->Interrupt->Header.Type = DlObjectTypeInterrupt;
+
+    pDevice->Interrupt->AssociatedDevice = Device;
+    pDevice->Interrupt->EvtInterruptIsr = Configuration->EvtInterruptIsr;
+    pDevice->Interrupt->EvtInterruptDisable = Configuration->EvtInterruptDisable;
+    pDevice->Interrupt->EvtInterruptEnable = Configuration->EvtInterruptEnable;
+    
+    *Interrupt = (WDFINTERRUPT) pDevice->Interrupt;
+    return STATUS_SUCCESS;
+}
+
+void DlWdfInterruptEnable(
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    WDFINTERRUPT Interrupt
+)
+{
+    PDL_WDF_INTERRUPT pInterrupt = (PDL_WDF_INTERRUPT) Interrupt;
+    UNREFERENCED_PARAMETER(DriverGlobals);
+
+    if (pInterrupt->EvtInterruptEnable != NULL) {
+        pInterrupt->EvtInterruptEnable((WDFINTERRUPT) pInterrupt, (WDFDEVICE) pInterrupt->AssociatedDevice);
+    }
+
+    // TODO: notify km partner to enable interrupt
+}
+
+void DlWdfInterruptDisable(
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    WDFINTERRUPT Interrupt
+)
+{
+    PDL_WDF_INTERRUPT pInterrupt = (PDL_WDF_INTERRUPT)Interrupt;
+    UNREFERENCED_PARAMETER(DriverGlobals);
+
+    if (pInterrupt->EvtInterruptDisable != NULL) {
+        pInterrupt->EvtInterruptDisable((WDFINTERRUPT) pInterrupt, (WDFDEVICE) pInterrupt->AssociatedDevice);
+    }
+
+    // TODO: notify km partner to disable interrupt
+}
+
+NTSTATUS DlWdfIoQueueCreate(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFDEVICE Device,
+    _In_
+    PWDF_IO_QUEUE_CONFIG Config,
+    _In_opt_
+    PWDF_OBJECT_ATTRIBUTES QueueAttributes,
+    _Out_opt_
+    WDFQUEUE* Queue
+)
+{
+    PDREAMLIFTER_DEVICE pDevice = (PDREAMLIFTER_DEVICE) Device;
+
+    UNREFERENCED_PARAMETER(DriverGlobals);
+    UNREFERENCED_PARAMETER(QueueAttributes);
+
+    if (Config == NULL || pDevice == NULL || Queue == NULL) {
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    if (pDevice->DefaultIoQueue != NULL || !Config->DefaultQueue) {
+        printf("[ERROR] DreamLifter only supports a single default queue\n");
+        return STATUS_NOT_SUPPORTED;
+    }
+
+    pDevice->DefaultIoQueue = malloc(sizeof(DL_WDF_QUEUE));
+    if (pDevice->DefaultIoQueue == NULL) {
+        printf("[ERROR] Failed to allocate resources for IO queue\n");
+        return STATUS_INSUFFICIENT_RESOURCES;
+    }
+
+    RtlZeroMemory(pDevice->DefaultIoQueue, sizeof(DL_WDF_QUEUE));
+    pDevice->DefaultIoQueue->Header.Magic = DREAMLIFTER_OBJECT_HEADER_MAGIC;
+    pDevice->DefaultIoQueue->Header.Type = DlObjectTypeIoQueue;
+
+    pDevice->DefaultIoQueue->AssociatedDevice = Device;
+    pDevice->DefaultIoQueue->EvtIoDeviceControl = Config->EvtIoDeviceControl;
+    pDevice->DefaultIoQueue->EvtIoCanceledOnQueue = Config->EvtIoCanceledOnQueue;
+
+    *Queue = (WDFQUEUE) pDevice->DefaultIoQueue;
+    return STATUS_SUCCESS;
 }

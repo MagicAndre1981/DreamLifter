@@ -35,6 +35,8 @@ typedef struct _DREAMLIFTER_DEVICE {
     PFN_WDF_DEVICE_PREPARE_HARDWARE EvtDevicePrepareHardware;
     HANDLE SerializationMutex;
     PDREAMLIFTER_UCM_DEVICE UcmManagerInfo;
+    PDL_WDF_INTERRUPT Interrupt;
+    PDL_WDF_QUEUE DefaultIoQueue;
 } DREAMLIFTER_DEVICE, * PDREAMLIFTER_DEVICE;
 
 #define GUEST_DRIVER_NAME "DreamLifterGuest"

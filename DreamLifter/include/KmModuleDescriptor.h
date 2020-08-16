@@ -99,6 +99,12 @@ DL_FUNCTION_DESCRIPTOR m_ntRoutines[] = {
 		"_vsnprintf",
 		(PVOID) Dlk_vsnprintf
 	},
+	// PO
+	{
+		FUNCTION_IMPL_DESCRIPTOR_V1,
+		"PoRegisterPowerSettingCallback",
+		(PVOID) DlPoRegisterPowerSettingCallback
+	},
 	{
 		0
 	},

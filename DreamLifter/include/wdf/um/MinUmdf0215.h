@@ -21,26 +21,6 @@ NTSTATUS DlUmBindExtensionClass(
 
 NTSTATUS DlWdfUmFunctionImplStub();
 
-void DlWdfDeviceInitSetPnpPowerEventCallbacks(
-    _In_
-    PWDF_DRIVER_GLOBALS DriverGlobals,
-    _In_
-    PVOID DeviceInit,
-    _In_
-    PWDF_PNPPOWER_EVENT_CALLBACKS PnpPowerEventCallbacks
-);
-
-NTSTATUS DlWdfCreateDeviceInterface(
-    _In_
-    PWDF_DRIVER_GLOBALS DriverGlobals,
-    _In_
-    WDFDEVICE Device,
-    _In_
-    CONST GUID* InterfaceClassGUID,
-    _In_opt_
-    PCUNICODE_STRING ReferenceString
-);
-
 void DlWdfRequestComplete(
     _In_
     PWDF_DRIVER_GLOBALS DriverGlobals,
@@ -48,19 +28,6 @@ void DlWdfRequestComplete(
     WDFREQUEST Request,
     _In_
     NTSTATUS Status
-);
-
-NTSTATUS DlWdfIoQueueCreate(
-    _In_
-    PWDF_DRIVER_GLOBALS DriverGlobals,
-    _In_
-    WDFDEVICE Device,
-    _In_
-    PWDF_IO_QUEUE_CONFIG Config,
-    _In_opt_
-    PWDF_OBJECT_ATTRIBUTES QueueAttributes,
-    _Out_opt_
-    WDFQUEUE* Queue
 );
 
 NTSTATUS DlWdfDriverOpenParametersRegistryKey(

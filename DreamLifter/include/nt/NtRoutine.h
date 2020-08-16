@@ -150,3 +150,24 @@ int _cdecl Dlk_vsnprintf(
 );
 
 UINT8 DlKeGetCurrentIrql();
+
+// PoRegisterPowerSettingCallback
+typedef
+_IRQL_requires_same_
+NTSTATUS
+POWER_SETTING_CALLBACK(
+	_In_ LPCGUID SettingGuid,
+	_In_reads_bytes_(ValueLength) PVOID Value,
+	_In_ ULONG ValueLength,
+	_Inout_opt_ PVOID Context
+);
+
+typedef POWER_SETTING_CALLBACK* PPOWER_SETTING_CALLBACK;
+
+NTSTATUS DlPoRegisterPowerSettingCallback(
+	PVOID					DeviceObject,
+	LPCGUID                 SettingGuid,
+	PPOWER_SETTING_CALLBACK Callback,
+	PVOID                   Context,
+	PVOID * Handle
+);

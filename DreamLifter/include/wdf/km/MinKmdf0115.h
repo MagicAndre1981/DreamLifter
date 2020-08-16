@@ -34,4 +34,9 @@ PWDFDEVICE_INIT DlWdfControlDeviceInitAllocate(
 	const UNICODE_STRING* SDDLString
 );
 
+PDEVICE_OBJECT DlWdfDeviceWdmGetDeviceObject(
+	PWDF_DRIVER_GLOBALS  DriverGlobals,
+	WDFDEVICE Device
+);
+
 #endif
