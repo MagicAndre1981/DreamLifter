@@ -492,17 +492,3 @@ void DlKmImplementationStubNoOp()
 {
 	// No-op
 }
-
-void DlKmLoaderStart()
-{
-	PDRIVER_MODULE driverModule = DlKmLoadModule();
-	UNICODE_STRING FakeRegString;
-	PVOID pDriverObjectStub = (PVOID) driverModule;
-	NTSTATUS status = STATUS_SUCCESS;
-
-	DlFxLdrGetWdfKmdf0115Functions();
-	RtlInitUnicodeString(&FakeRegString, L"HKLM\\Something");
-	if (driverModule != NULL && driverModule->Entry != NULL) {
-		status = driverModule->Entry(pDriverObjectStub, &FakeRegString);
-	}
-}

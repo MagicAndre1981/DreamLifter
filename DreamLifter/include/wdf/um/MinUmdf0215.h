@@ -21,34 +21,6 @@ NTSTATUS DlUmBindExtensionClass(
 
 NTSTATUS DlWdfUmFunctionImplStub();
 
-// Begin DreamLifter WDF implementation
-typedef struct _DRIVER_INSTANCE {
-    PFN_WDF_OBJECT_CONTEXT_CLEANUP DriverCleanupCallback;
-    PFN_WDF_OBJECT_CONTEXT_DESTROY DriverDestroyCallback;
-    PFN_WDF_DRIVER_DEVICE_ADD      DriverDeviceAdd;
-    PFN_WDF_DRIVER_UNLOAD          DriverUnload;
-} DRIVER_INSTANCE, * PDRIVER_INSTANCE;
-
-typedef struct _DREAMLIFTER_DEVICE_INIT {
-    // This can be further extended
-    PFN_WDF_DEVICE_PREPARE_HARDWARE EvtDevicePrepareHardware;
-} DREAMLIFTER_DEVICE_INIT, * PDREAMLIFTER_DEVICE_INIT;
-
-NTSTATUS DlWdfCreateDriver(
-    _In_
-    PWDF_DRIVER_GLOBALS DriverGlobals,
-    _In_
-    PDRIVER_OBJECT DriverObject,
-    _In_
-    PCUNICODE_STRING RegistryPath,
-    _In_opt_
-    PWDF_OBJECT_ATTRIBUTES DriverAttributes,
-    _In_
-    PWDF_DRIVER_CONFIG DriverConfig,
-    _Out_opt_
-    WDFDRIVER* Driver
-);
-
 void DlWdfDeviceInitSetPnpPowerEventCallbacks(
     _In_
     PWDF_DRIVER_GLOBALS DriverGlobals,

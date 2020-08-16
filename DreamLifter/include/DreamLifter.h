@@ -12,7 +12,7 @@
 #include <winternl.h>
 #include <wintrust.h>
 
-#include <MinUmdfLoaderInterface.h>
+#include <MinWdfLoaderInterface.h>
 
 #include <nt/NtRoutine.h>
 #include <wdf/FxShared.h>
@@ -39,7 +39,9 @@ typedef struct _DREAMLIFTER_DEVICE {
 #define GUEST_DRIVER_NAME_KM "DreamLifterGuestKm"
 #define DL_KM_LOADER "--km"
 
-int DlStartDriverHost();
+int DlStartUmHost();
+int DlStartKmHost();
+
 inline void CpuDeadLoop()
 {
     while (TRUE) { ; }

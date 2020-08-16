@@ -32,8 +32,7 @@ int main(int argc, char* argv[])
     }
 
     if (g_bStartKmLoader) {
-        DlKmLoaderStart();
-        return 0;
+        return DlStartKmHost();
     }
 
     if (!g_bStartAsStandaloneApp) {
@@ -44,13 +43,13 @@ int main(int argc, char* argv[])
     }
     else
     {
-        return DlStartDriverHost();
+        return DlStartUmHost();
     }
 
     return 0;
 }
 
-int DlStartDriverHost()
+int DlStartUmHost()
 {
     errno_t err = 0;
 
@@ -316,11 +315,10 @@ DWORD WINAPI ServiceWorkerThread(
 
     UNREFERENCED_PARAMETER(lpParam);
 
-    ret = DlStartDriverHost();
+    ret = DlStartUmHost();
     if (ret != 0) {
         return ERROR_CREATE_FAILED;
     }
 
     return ERROR_SUCCESS;
 }
-

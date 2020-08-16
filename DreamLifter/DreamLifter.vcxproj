@@ -341,9 +341,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DreamLiferKm.c" />
     <ClCompile Include="DreamLifter.c" />
     <ClCompile Include="fxshared\Wdf.c" />
-    <ClCompile Include="KmCodeLoader.c" />
+    <ClCompile Include="km\NtKmCodeLoader.c" />
+    <ClCompile Include="km\KmdfLoader.c" />
     <ClCompile Include="km\MinKmdf0115.c" />
     <ClCompile Include="NtRoutine\CRuntime.c" />
     <ClCompile Include="NtRoutine\Dbg.c" />
@@ -365,7 +367,7 @@
     <ClInclude Include="include\DreamLifterKmLoader.h" />
     <ClInclude Include="include\DreamLifterService.h" />
     <ClInclude Include="include\KmModuleDescriptor.h" />
-    <ClInclude Include="include\MinUmdfLoaderInterface.h" />
+    <ClInclude Include="include\MinWdfLoaderInterface.h" />
     <ClInclude Include="include\nt\NtRoutine.h" />
     <ClInclude Include="include\wdf\FxShared.h" />
     <ClInclude Include="include\wdf\km\KmdfDriverEnums0115.h" />

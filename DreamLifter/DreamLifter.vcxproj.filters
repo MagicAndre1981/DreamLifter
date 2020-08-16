@@ -13,85 +13,106 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\UMDF">
-      <UniqueIdentifier>{540c3b66-5960-4346-9512-867bddd6ebf9}</UniqueIdentifier>
+    <Filter Include="Source Files\WDF">
+      <UniqueIdentifier>{4219a20a-211b-44f0-9988-2f8f5055502a}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\UMDF">
-      <UniqueIdentifier>{2a02a4cd-2bf4-416c-9e48-7d37be3c33b3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\UcmCx">
-      <UniqueIdentifier>{33ddbcff-23c5-4aea-b161-ba0c81e9efac}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\UcmCx">
-      <UniqueIdentifier>{5f861f54-c885-4cfe-8477-1db8d0f8a43e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\KMDF">
-      <UniqueIdentifier>{4376049a-5961-46bc-a3c0-54b63ff016ca}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\FxShared">
-      <UniqueIdentifier>{82ab6ade-310a-45d3-9839-2b4e334cd2f5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\KMDF">
+    <Filter Include="Source Files\WDF\KMDF">
       <UniqueIdentifier>{1025df63-da83-40d7-85f4-a395de2737d6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\FxShared">
+    <Filter Include="Source Files\WDF\UMDF">
+      <UniqueIdentifier>{2a02a4cd-2bf4-416c-9e48-7d37be3c33b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\WDF\UcmCx">
+      <UniqueIdentifier>{33ddbcff-23c5-4aea-b161-ba0c81e9efac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\WDF\FxShared">
       <UniqueIdentifier>{ce128e09-a696-4da0-ba51-f7c3eb1f00ac}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\NtRoutine">
-      <UniqueIdentifier>{ce70c558-b813-43a2-ab0c-7e18baf7360c}</UniqueIdentifier>
+    <Filter Include="Source Files\User-mode Kernel">
+      <UniqueIdentifier>{fbcb0260-d9ed-4e52-942e-69b7a0a70fa0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\NtRoutine">
-      <UniqueIdentifier>{2800b58f-53ad-4ded-890c-dccd1ee929a9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\Km">
+    <Filter Include="Source Files\User-mode Kernel\Km">
       <UniqueIdentifier>{7d84d984-1973-4220-9f7e-881e8e2391ff}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\Km">
+    <Filter Include="Source Files\User-mode Kernel\NtRoutine">
+      <UniqueIdentifier>{ce70c558-b813-43a2-ab0c-7e18baf7360c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\WDF">
+      <UniqueIdentifier>{01cb36c7-4ee1-4e63-95df-5bf8261c7382}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\WDF\KMDF">
+      <UniqueIdentifier>{4376049a-5961-46bc-a3c0-54b63ff016ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\WDF\FxShared">
+      <UniqueIdentifier>{82ab6ade-310a-45d3-9839-2b4e334cd2f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\WDF\UcmCx">
+      <UniqueIdentifier>{5f861f54-c885-4cfe-8477-1db8d0f8a43e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\WDF\UMDF">
+      <UniqueIdentifier>{540c3b66-5960-4346-9512-867bddd6ebf9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\User-mode Kernel">
+      <UniqueIdentifier>{828595f1-d921-4a96-bdcb-04649432cf6c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\User-mode Kernel\Km">
       <UniqueIdentifier>{95eae86f-08fc-4bf2-b3d5-d60d164bf228}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\User-mode Kernel\NtRoutine">
+      <UniqueIdentifier>{2800b58f-53ad-4ded-890c-dccd1ee929a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Resources">
+      <UniqueIdentifier>{36eb4ee9-c7a6-48a9-b9da-2e64598cd644}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\WDF\Loader">
+      <UniqueIdentifier>{dc3a2b45-98bc-4375-ae14-8aefe0e1cfae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\App">
+      <UniqueIdentifier>{d1b760e4-4831-4c46-91b7-32f9873d3ea8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="include\MinUmdfLoaderInterface.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\DreamLifter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\wdf\um\UmdfDriverEnums0215.h">
-      <Filter>Header Files\UMDF</Filter>
+      <Filter>Header Files\WDF\UMDF</Filter>
     </ClInclude>
     <ClInclude Include="include\wdf\um\MinUmdf0215.h">
-      <Filter>Header Files\UMDF</Filter>
-    </ClInclude>
-    <ClInclude Include="resource.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\WDF\UMDF</Filter>
     </ClInclude>
     <ClInclude Include="include\wdf\UcmCx\MinUcmCx0100.h">
-      <Filter>Header Files\UcmCx</Filter>
+      <Filter>Header Files\WDF\UcmCx</Filter>
     </ClInclude>
     <ClInclude Include="include\wdf\UcmCx\UcmFuncEnums0100.h">
-      <Filter>Header Files\UcmCx</Filter>
-    </ClInclude>
-    <ClInclude Include="include\DreamLifterService.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\DreamLifterKmLoader.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\WDF\UcmCx</Filter>
     </ClInclude>
     <ClInclude Include="include\wdf\km\KmdfDriverEnums0115.h">
-      <Filter>Header Files\KMDF</Filter>
+      <Filter>Header Files\WDF\KMDF</Filter>
     </ClInclude>
     <ClInclude Include="include\wdf\FxShared.h">
-      <Filter>Header Files\FxShared</Filter>
+      <Filter>Header Files\WDF\FxShared</Filter>
     </ClInclude>
     <ClInclude Include="include\wdf\km\MinKmdf0115.h">
-      <Filter>Header Files\KMDF</Filter>
+      <Filter>Header Files\WDF\KMDF</Filter>
     </ClInclude>
     <ClInclude Include="include\nt\NtRoutine.h">
-      <Filter>Header Files\NtRoutine</Filter>
+      <Filter>Header Files\User-mode Kernel\NtRoutine</Filter>
     </ClInclude>
     <ClInclude Include="include\KmModuleDescriptor.h">
-      <Filter>Header Files\Km</Filter>
+      <Filter>Header Files\User-mode Kernel\Km</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files\Resources</Filter>
+    </ClInclude>
+    <ClInclude Include="include\DreamLifterKmLoader.h">
+      <Filter>Header Files\WDF\Loader</Filter>
+    </ClInclude>
+    <ClInclude Include="include\MinWdfLoaderInterface.h">
+      <Filter>Header Files\WDF\Loader</Filter>
+    </ClInclude>
+    <ClInclude Include="include\DreamLifter.h">
+      <Filter>Header Files\App</Filter>
+    </ClInclude>
+    <ClInclude Include="include\DreamLifterService.h">
+      <Filter>Header Files\App</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -99,55 +120,61 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="um\MinUmdf0215.c">
-      <Filter>Source Files\UMDF</Filter>
+      <Filter>Source Files\WDF\UMDF</Filter>
     </ClCompile>
     <ClCompile Include="UcmCx\MinUcmCx0100.c">
-      <Filter>Source Files\UcmCx</Filter>
+      <Filter>Source Files\WDF\UcmCx</Filter>
     </ClCompile>
     <ClCompile Include="UcmCx\UcmEnumDebugUtility.c">
-      <Filter>Source Files\UcmCx</Filter>
+      <Filter>Source Files\WDF\UcmCx</Filter>
     </ClCompile>
     <ClCompile Include="UcmCx\UcmCxLoader.c">
-      <Filter>Source Files\UcmCx</Filter>
+      <Filter>Source Files\WDF\UcmCx</Filter>
     </ClCompile>
     <ClCompile Include="um\UmdfLoader.c">
-      <Filter>Source Files\UMDF</Filter>
+      <Filter>Source Files\WDF\UMDF</Filter>
     </ClCompile>
     <ClCompile Include="NtRoutine\Rtl.c">
-      <Filter>Source Files\NtRoutine</Filter>
-    </ClCompile>
-    <ClCompile Include="KmCodeLoader.c">
-      <Filter>Source Files\Km</Filter>
+      <Filter>Source Files\User-mode Kernel\NtRoutine</Filter>
     </ClCompile>
     <ClCompile Include="km\MinKmdf0115.c">
-      <Filter>Source Files\KMDF</Filter>
+      <Filter>Source Files\WDF\KMDF</Filter>
     </ClCompile>
     <ClCompile Include="NtRoutine\Mm.c">
-      <Filter>Source Files\NtRoutine</Filter>
+      <Filter>Source Files\User-mode Kernel\NtRoutine</Filter>
     </ClCompile>
     <ClCompile Include="NtRoutine\Ps.c">
-      <Filter>Source Files\NtRoutine</Filter>
+      <Filter>Source Files\User-mode Kernel\NtRoutine</Filter>
     </ClCompile>
     <ClCompile Include="NtRoutine\Wmi.c">
-      <Filter>Source Files\NtRoutine</Filter>
+      <Filter>Source Files\User-mode Kernel\NtRoutine</Filter>
     </ClCompile>
     <ClCompile Include="NtRoutine\Etw.c">
-      <Filter>Source Files\NtRoutine</Filter>
+      <Filter>Source Files\User-mode Kernel\NtRoutine</Filter>
     </ClCompile>
     <ClCompile Include="NtRoutine\Io.c">
-      <Filter>Source Files\NtRoutine</Filter>
+      <Filter>Source Files\User-mode Kernel\NtRoutine</Filter>
     </ClCompile>
     <ClCompile Include="NtRoutine\Dbg.c">
-      <Filter>Source Files\NtRoutine</Filter>
+      <Filter>Source Files\User-mode Kernel\NtRoutine</Filter>
     </ClCompile>
     <ClCompile Include="NtRoutine\Ke.c">
-      <Filter>Source Files\NtRoutine</Filter>
+      <Filter>Source Files\User-mode Kernel\NtRoutine</Filter>
     </ClCompile>
     <ClCompile Include="NtRoutine\CRuntime.c">
-      <Filter>Source Files\NtRoutine</Filter>
+      <Filter>Source Files\User-mode Kernel\NtRoutine</Filter>
     </ClCompile>
     <ClCompile Include="fxshared\Wdf.c">
-      <Filter>Source Files\FxShared</Filter>
+      <Filter>Source Files\WDF\FxShared</Filter>
+    </ClCompile>
+    <ClCompile Include="DreamLiferKm.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="km\KmdfLoader.c">
+      <Filter>Source Files\WDF\KMDF</Filter>
+    </ClCompile>
+    <ClCompile Include="km\NtKmCodeLoader.c">
+      <Filter>Source Files\User-mode Kernel\Km</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

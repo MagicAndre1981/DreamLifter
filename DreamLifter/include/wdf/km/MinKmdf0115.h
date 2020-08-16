@@ -3,7 +3,6 @@
 #ifndef __MIN_KMDF_1_15_H__
 #define __MIN_KMDF_1_15_H__
 
-void DlKmLoaderStart();
 void DlKmImplementationStub();
 
 NTSTATUS
@@ -28,5 +27,11 @@ NTSTATUS DlWdfVersionUnbindClass();
 NTSTATUS DlWdfKmFunctionImplStub();
 void DlKmImplementationStubNoOp();
 PVOID DlFxLdrGetWdfKmdf0115Functions();
+
+PWDFDEVICE_INIT DlWdfControlDeviceInitAllocate(
+	PWDF_DRIVER_GLOBALS DriverGlobals,
+	WDFDRIVER            Driver,
+	const UNICODE_STRING* SDDLString
+);
 
 #endif
