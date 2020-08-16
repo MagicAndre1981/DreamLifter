@@ -184,7 +184,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>ntdll.lib;Advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>ntdll.lib;Advapi32.lib;Bcrypt.lib</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>
@@ -207,7 +207,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>ntdll.lib;Advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>ntdll.lib;Advapi32.lib;Bcrypt.lib</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>
@@ -226,7 +226,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>ntdll.lib;Advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>ntdll.lib;Advapi32.lib;Bcrypt.lib</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>
@@ -245,7 +245,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>ntdll.lib;Advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>ntdll.lib;Advapi32.lib;Bcrypt.lib</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>
@@ -264,7 +264,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>ntdll.lib;Advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>ntdll.lib;Advapi32.lib;Bcrypt.lib</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>
@@ -287,7 +287,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>ntdll.lib;Advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>ntdll.lib;Advapi32.lib;Bcrypt.lib</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>
@@ -310,7 +310,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>ntdll.lib;Advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>ntdll.lib;Advapi32.lib;Bcrypt.lib</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>
@@ -333,7 +333,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>ntdll.lib;Advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>ntdll.lib;Advapi32.lib;Bcrypt.lib</AdditionalDependencies>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
       <IgnoreSpecificDefaultLibraries>
@@ -347,6 +347,7 @@
     <ClCompile Include="NtRoutine\Dbg.c" />
     <ClCompile Include="NtRoutine\Etw.c" />
     <ClCompile Include="NtRoutine\Io.c" />
+    <ClCompile Include="NtRoutine\Ke.c" />
     <ClCompile Include="NtRoutine\Mm.c" />
     <ClCompile Include="NtRoutine\Ps.c" />
     <ClCompile Include="NtRoutine\Rtl.c" />

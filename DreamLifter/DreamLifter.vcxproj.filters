@@ -140,6 +140,9 @@
     <ClCompile Include="NtRoutine\Dbg.c">
       <Filter>Source Files\NtRoutine</Filter>
     </ClCompile>
+    <ClCompile Include="NtRoutine\Ke.c">
+      <Filter>Source Files\NtRoutine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">

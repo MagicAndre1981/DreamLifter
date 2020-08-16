@@ -405,10 +405,15 @@ PDRIVER_MODULE DlKmLoadModule()
 
 			// Security cookie is the second DWORD at .data section
 			if (strcmp(".data", (const char*) pCurrent->Name) == 0) {
-				// TODO: Generate a crypto safe cookie canary here
-				// For debugging purpose, I filled a hard-coded value,
-				// taken from the first few bytes of katsuragishoko.
-				*((DWORD*)((UINT_PTR)pDest + 4)) = 0x6B617473;
+				if (!NT_SUCCESS(BCryptGenRandom(
+					NULL,
+					(PUCHAR)((UCHAR*)((UINT_PTR)pDest + 4)),
+					4,
+					BCRYPT_USE_SYSTEM_PREFERRED_RNG
+				))) {
+					printf("[ERROR] Failed to set cookie canary\n");
+					goto exit;
+				}
 			}
 
 			if (pCurrent->Characteristics & IMAGE_SCN_MEM_READ) {
