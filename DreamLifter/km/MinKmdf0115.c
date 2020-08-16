@@ -6,13 +6,7 @@
 NTSTATUS DlWdfKmFunctionImplStub()
 {
 	// Calling a function that is not yet implemented.
-	printf("[ERROR] Calling a unimplemented WDF KM Fx stub function\n");
-
-	if (IsDebuggerPresent())
-	{
-		DebugBreak();
-	}
-
+	TrapDebugger("[ERROR] Calling a unimplemented WDF KM Fx stub function\n");
 	return STATUS_NOT_IMPLEMENTED;
 }
 
@@ -45,6 +39,8 @@ PWDFDEVICE_INIT DlWdfControlDeviceInitAllocate(
 	pDlDriverInit = malloc(sizeof(DREAMLIFTER_DEVICE_INIT));
 	if (pDlDriverInit != NULL) {
 		RtlZeroMemory(pDlDriverInit, sizeof(DREAMLIFTER_DEVICE_INIT));
+		pDlDriverInit->Header.Magic = DREAMLIFTER_OBJECT_HEADER_MAGIC;
+		pDlDriverInit->Header.Type = DlObjectTypeDeviceInit;
 	}
 	else {
 		printf("[ERROR] Failed to allocate Device Init struct\n");

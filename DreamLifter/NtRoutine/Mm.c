@@ -24,11 +24,7 @@ PVOID DlkMmGetSystemRoutineAddress(
 		wprintf(L"[INFO] Requesting system routine %s. Becacuse it is not implemented, returning stub trap\n", SystemRoutineName->Buffer);
 	}
 	else {
-		wprintf(L"[ERROR] Failed to call RtlUnicodeStringToAnsiString\n");
-		if (IsDebuggerPresent())
-		{
-			DebugBreak();
-		}
+		TrapDebugger("[ERROR] Failed to call RtlUnicodeStringToAnsiString\n");
 	}
 	
 	return (PVOID)DlKmImplementationStub;

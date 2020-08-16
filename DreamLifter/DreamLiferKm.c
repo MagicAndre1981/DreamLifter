@@ -33,7 +33,17 @@ int DlStartKmHost()
 	}
 
 	if (g_pDriverInstance->DriverDeviceAdd != NULL) {
+		DREAMLIFTER_DEVICE_INIT deviceInit;
+		RtlZeroMemory(&deviceInit, sizeof(deviceInit));
+		deviceInit.Header.Magic = DREAMLIFTER_OBJECT_HEADER_MAGIC;
+		deviceInit.Header.Type = DlObjectTypeDeviceInit;
 
+		status = g_pDriverInstance->DriverDeviceAdd((WDFDRIVER)g_pDriverInstance, (PWDFDEVICE_INIT)&deviceInit);
+		if (!NT_SUCCESS(status)) {
+			printf("[ERROR] DriverDeviceAdd failed: 0x%x\n", status);
+			err = RtlNtStatusToDosError(status);
+			goto exit;
+		}
 	}
 
 exit:

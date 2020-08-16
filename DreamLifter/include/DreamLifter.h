@@ -27,10 +27,12 @@
 
 // TODO: separate this to a proper header file
 typedef struct _DREAMLIFTER_DEVICE {
-    // This can be further extended
-    PFN_WDF_DEVICE_PREPARE_HARDWARE EvtDevicePrepareHardware;
+    DREAMLIFTER_WDF_OBJECT_HEADER Header;
+    // Anything with potential context will have these two at front
     PCWDF_OBJECT_CONTEXT_TYPE_INFO DeviceContextInfo;
     PVOID DeviceContext;
+    // This can be further extended
+    PFN_WDF_DEVICE_PREPARE_HARDWARE EvtDevicePrepareHardware;
     HANDLE SerializationMutex;
     PDREAMLIFTER_UCM_DEVICE UcmManagerInfo;
 } DREAMLIFTER_DEVICE, * PDREAMLIFTER_DEVICE;
@@ -45,6 +47,17 @@ int DlStartKmHost();
 inline void CpuDeadLoop()
 {
     while (TRUE) { ; }
+}
+
+inline void TrapDebugger(char* Message)
+{
+    printf(Message);
+    OutputDebugStringA(Message);
+
+    if (IsDebuggerPresent())
+    {
+        DebugBreak();
+    }
 }
 
 #endif

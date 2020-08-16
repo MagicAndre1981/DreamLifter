@@ -15,6 +15,11 @@ PVOID DlFxLdrGetWdfKmdf0115Functions()
 
 	g_WdfFunctions0115[WdfDriverCreateTableIndex] = (PVOID)DlWdfCreateDriver;
 	g_WdfFunctions0115[WdfControlDeviceInitAllocateTableIndex] = (PVOID)DlWdfControlDeviceInitAllocate;
+	g_WdfFunctions0115[WdfDeviceInitSetPnpPowerEventCallbacksTableIndex] = (PVOID)DlWdfDeviceInitSetPnpPowerEventCallbacks;
+	g_WdfFunctions0115[WdfDeviceInitSetFileObjectConfigTableIndex] = (PVOID)DlWdfDeviceInitSetFileObjectConfig;
+	g_WdfFunctions0115[WdfDeviceCreateTableIndex] = (PVOID)DlWdfDeviceCreate;
+
+	g_WdfFunctions0115[WdfObjectGetTypedContextWorkerTableIndex] = (PVOID) DlWdfObjectGetTypedContextWorker;
 
 	g_WdfFunctions0115[WdfSpinLockCreateTableIndex] = (PVOID)DlWdfSpinLockCreate;
 	g_WdfFunctions0115[WdfSpinLockAcquireTableIndex] = (PVOID)DlWdfSpinLockAcquire;

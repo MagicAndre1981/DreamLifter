@@ -478,13 +478,7 @@ exit:
 void DlKmImplementationStub()
 {
 	// Calling a routine that is not yet implemented.
-	printf("[ERROR] Calling a unimplemented kernel routine\n");
-
-	if (IsDebuggerPresent())
-	{
-		DebugBreak();
-	}
-
+	TrapDebugger("[ERROR] Calling a unimplemented kernel routine\n");
 	CpuDeadLoop();
 }
 

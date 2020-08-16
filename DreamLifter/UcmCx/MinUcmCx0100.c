@@ -642,12 +642,6 @@ NTSTATUS DlUcmConnectorPowerDirectionChanged(
 NTSTATUS DlWdfCxUcmFunctionImplStub()
 {
     // Calling a function that is not yet implemented.
-    printf("[ERROR] Calling a unimplemented WDF UcmCx stub function\n");
-
-    if (IsDebuggerPresent())
-    {
-        DebugBreak();
-    }
-
+    TrapDebugger("[ERROR] Calling a unimplemented WDF UcmCx stub function\n");
     return STATUS_NOT_IMPLEMENTED;
 }

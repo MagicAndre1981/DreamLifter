@@ -25,6 +25,8 @@ NTSTATUS DlWdfSpinLockCreate(
         return STATUS_INSUFFICIENT_RESOURCES;
     }
 
+    pSpinLock->Header.Magic = DREAMLIFTER_OBJECT_HEADER_MAGIC;
+    pSpinLock->Header.Type = DlObjectTypeSpinLock;
     pSpinLock->Exclusion = 1;
     *SpinLock = (WDFSPINLOCK)pSpinLock;
     return STATUS_SUCCESS;
@@ -99,6 +101,9 @@ NTSTATUS DlWdfTimerCreate(
     }
 
     RtlZeroMemory(pTimer, sizeof(DREAMLIFTER_TIMER));
+    pTimer->Header.Magic = DREAMLIFTER_OBJECT_HEADER_MAGIC;
+    pTimer->Header.Type = DlObjectTypeTimer;
+
     if (Config->AutomaticSerialization == TRUE
         && Attributes->SynchronizationScope != WdfSynchronizationScopeInheritFromParent
         && Attributes->SynchronizationScope != WdfSynchronizationScopeDevice) {
@@ -151,11 +156,7 @@ BOOLEAN DlWdfTimerStart(
     }
     else {
         // Not yet seeing the use case here
-        OutputDebugString(L"[WARN] Attempt to use absoulte time for WdfTimer, which is not yet supported\n");
-        if (IsDebuggerPresent())
-        {
-            DebugBreak();
-        }
+        TrapDebugger("[WARN] Attempt to use absoulte time for WdfTimer, which is not yet supported\n");
         return FALSE;
     }
 
@@ -232,6 +233,7 @@ NTSTATUS DlWdfWorkItemCreate(
 )
 {
     PDREAMLIFTER_WORKITEM pWorkItem = NULL;
+    size_t contextSize = 0;
 
     UNREFERENCED_PARAMETER(DriverGlobals);
 
@@ -246,10 +248,33 @@ NTSTATUS DlWdfWorkItemCreate(
     }
 
     RtlZeroMemory(pWorkItem, sizeof(DREAMLIFTER_WORKITEM));
+    pWorkItem->Header.Magic = DREAMLIFTER_OBJECT_HEADER_MAGIC;
+    pWorkItem->Header.Type = DlObjectTypeWorkItem;
+
     if (Config->AutomaticSerialization == TRUE) {
         OutputDebugString(L"[ERROR] The workitem serialization mode is not yet supported\n");
         free(pWorkItem);
         return STATUS_NOT_SUPPORTED;
+    }
+
+    if (Attributes->ContextTypeInfo != NULL) {
+        pWorkItem->WorkItemContextInfo = Attributes->ContextTypeInfo;
+        contextSize = (Attributes->ContextSizeOverride > Attributes->ContextTypeInfo->ContextSize) ?
+            Attributes->ContextSizeOverride : Attributes->ContextTypeInfo->ContextSize;
+        if (contextSize > 0) {
+            pWorkItem->WorkItemContext = malloc(contextSize);
+            if (pWorkItem->WorkItemContext == NULL) {
+                OutputDebugString(L"[ERROR] Failed to allocate workitem context struct\n");
+                free(pWorkItem);
+                return STATUS_INSUFFICIENT_RESOURCES;
+            }
+            RtlZeroMemory(pWorkItem->WorkItemContext, contextSize);
+        }
+        else {
+            OutputDebugString(L"[WARN] Unexpected device context size 0\n");
+            free(pWorkItem);
+            return STATUS_INVALID_PARAMETER;
+        }
     }
 
     pWorkItem->AutomaticSerialization = Config->AutomaticSerialization;
@@ -343,6 +368,9 @@ NTSTATUS DlWdfCreateDriver(
     }
 
     RtlZeroMemory(pDriverInstance, sizeof(DRIVER_INSTANCE));
+    pDriverInstance->Header.Magic = DREAMLIFTER_OBJECT_HEADER_MAGIC;
+    pDriverInstance->Header.Type = DlObjectTypeDriverInstance;
+
     Driver = (WDFDRIVER*)pDriverInstance;
     // Currently this is a singleton host
     g_pDriverInstance = pDriverInstance;
@@ -357,4 +385,133 @@ NTSTATUS DlWdfCreateDriver(
     pDriverInstance->DriverUnload = DriverConfig->EvtDriverUnload;
 
     return STATUS_SUCCESS;
+}
+
+void DlWdfDeviceInitSetPnpPowerEventCallbacks(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    PVOID DeviceInit,
+    _In_
+    PWDF_PNPPOWER_EVENT_CALLBACKS PnpPowerEventCallbacks
+)
+{
+    UNREFERENCED_PARAMETER(DriverGlobals);
+
+    if (DeviceInit != NULL && PnpPowerEventCallbacks != NULL) {
+        ((PDREAMLIFTER_DEVICE_INIT)DeviceInit)->EvtDevicePrepareHardware = PnpPowerEventCallbacks->EvtDevicePrepareHardware;
+        ((PDREAMLIFTER_DEVICE_INIT)DeviceInit)->EvtDeviceReleaseHardware = PnpPowerEventCallbacks->EvtDeviceReleaseHardware;
+        ((PDREAMLIFTER_DEVICE_INIT)DeviceInit)->EvtDeviceD0Entry = PnpPowerEventCallbacks->EvtDeviceD0Entry;
+        ((PDREAMLIFTER_DEVICE_INIT)DeviceInit)->EvtDeviceD0Exit = PnpPowerEventCallbacks->EvtDeviceD0Exit;
+    }
+}
+
+void DlWdfDeviceInitSetFileObjectConfig(
+    PWDFDEVICE_INIT        DeviceInit,
+    PWDF_FILEOBJECT_CONFIG FileObjectConfig,
+    PWDF_OBJECT_ATTRIBUTES FileObjectAttributes
+)
+{
+    UNREFERENCED_PARAMETER(FileObjectAttributes);
+
+    if (DeviceInit != NULL && FileObjectConfig != NULL) {
+        ((PDREAMLIFTER_DEVICE_INIT)DeviceInit)->AutoForwardCleanupClose = FileObjectConfig->AutoForwardCleanupClose;
+        ((PDREAMLIFTER_DEVICE_INIT)DeviceInit)->EvtDeviceFileCreate = FileObjectConfig->EvtDeviceFileCreate;
+        ((PDREAMLIFTER_DEVICE_INIT)DeviceInit)->EvtFileCleanup = FileObjectConfig->EvtFileCleanup;
+        ((PDREAMLIFTER_DEVICE_INIT)DeviceInit)->EvtFileClose = FileObjectConfig->EvtFileClose;
+        ((PDREAMLIFTER_DEVICE_INIT)DeviceInit)->FileObjectClass = FileObjectConfig->FileObjectClass;
+    }
+}
+
+NTSTATUS DlWdfDeviceCreate(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _Inout_
+    PWDFDEVICE_INIT* DeviceInit,
+    _In_opt_
+    PWDF_OBJECT_ATTRIBUTES DeviceAttributes,
+    _Out_
+    WDFDEVICE* Device
+)
+{
+    PDREAMLIFTER_DEVICE pDevice;
+    size_t contextSize = 0;
+
+    UNREFERENCED_PARAMETER(DriverGlobals);
+
+    if (DeviceInit == NULL || DeviceAttributes == NULL) {
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    pDevice = malloc(sizeof(DREAMLIFTER_DEVICE));
+    if (pDevice == NULL) {
+        OutputDebugString(L"[ERROR] Failed to allocate DREAMLIFTER_DEVICE struct\n");
+        return STATUS_INSUFFICIENT_RESOURCES;
+    }
+
+    RtlZeroMemory(pDevice, sizeof(DREAMLIFTER_DEVICE));
+    pDevice->Header.Magic = DREAMLIFTER_OBJECT_HEADER_MAGIC;
+    pDevice->Header.Type = DlObjectTypeDeviceInstance;
+
+    pDevice->EvtDevicePrepareHardware = ((PDREAMLIFTER_DEVICE_INIT)*DeviceInit)->EvtDevicePrepareHardware;
+    if (DeviceAttributes->ContextTypeInfo != NULL) {
+        pDevice->DeviceContextInfo = DeviceAttributes->ContextTypeInfo;
+        contextSize = (DeviceAttributes->ContextSizeOverride > DeviceAttributes->ContextTypeInfo->ContextSize) ?
+            DeviceAttributes->ContextSizeOverride : DeviceAttributes->ContextTypeInfo->ContextSize;
+        if (contextSize > 0) {
+            pDevice->DeviceContext = malloc(contextSize);
+            if (pDevice->DeviceContext == NULL) {
+                OutputDebugString(L"[ERROR] Failed to allocate device context struct\n");
+                return STATUS_INSUFFICIENT_RESOURCES;
+            }
+            RtlZeroMemory(pDevice->DeviceContext, contextSize);
+        }
+        else {
+            OutputDebugString(L"[WARN] Unexpected device context size 0\n");
+            return STATUS_INVALID_PARAMETER;
+        }
+    }
+
+    pDevice->SerializationMutex = CreateMutex(
+        NULL,
+        FALSE,
+        NULL
+    );
+    if (pDevice->SerializationMutex == NULL)
+    {
+        printf("[ERROR] CreateMutex error: %d\n", GetLastError());
+        free(pDevice);
+        return STATUS_INSUFFICIENT_RESOURCES;
+    }
+
+    *Device = (WDFDEVICE)pDevice;
+    g_pDevice = pDevice;
+    return STATUS_SUCCESS;
+}
+
+PVOID DlWdfObjectGetTypedContextWorker(
+    PWDF_DRIVER_GLOBALS            DriverGlobals,
+    WDFOBJECT                      Handle,
+    PCWDF_OBJECT_CONTEXT_TYPE_INFO TypeInfo
+)
+{
+    
+    PDREAMLIFTER_WDF_OBJECT_HEADER pObjectHeader = (PDREAMLIFTER_WDF_OBJECT_HEADER) Handle;
+    if (pObjectHeader->Magic != DREAMLIFTER_OBJECT_HEADER_MAGIC) {
+        TrapDebugger("[ERROR] Attempt to access invalid WDF object\n");
+    }
+
+    // Skip the first object header
+    PDREAMLIFTER_CONTEXT_HEADER pContextHeader = (PDREAMLIFTER_CONTEXT_HEADER) ((PUCHAR) Handle + sizeof(DREAMLIFTER_WDF_OBJECT_HEADER));
+    UNREFERENCED_PARAMETER(DriverGlobals);
+
+    if (pContextHeader != NULL) {
+        if (strcmp(pContextHeader->WorkItemContextInfo->ContextName, TypeInfo->ContextName) == 0 &&
+            pContextHeader->WorkItemContextInfo->ContextSize == TypeInfo->ContextSize) {
+            return pContextHeader->WorkItemContext;
+        }
+    }
+
+    TrapDebugger("[ERROR] Attempt to access invalid WDF context\n");
+    return NULL;
 }

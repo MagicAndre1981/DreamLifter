@@ -36,6 +36,8 @@ DECLARE_HANDLE(WDFKEY);
 DECLARE_HANDLE(WDFTIMER);
 DECLARE_HANDLE(WDFWORKITEM);
 
+DECLARE_HANDLE(WDFFILEOBJECT);
+
 typedef PVOID PDRIVER_OBJECT;
 typedef PVOID PDEVICE_OBJECT;
 typedef PVOID WDFCONTEXT;
@@ -947,8 +949,85 @@ VOID
     WDFWORKITEM WorkItem
     );
 
+typedef
+_IRQL_requires_same_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+EVT_WDF_DEVICE_FILE_CREATE(
+    _In_
+    WDFDEVICE Device,
+    _In_
+    WDFREQUEST Request,
+    _In_
+    WDFFILEOBJECT FileObject
+);
+
+typedef EVT_WDF_DEVICE_FILE_CREATE* PFN_WDF_DEVICE_FILE_CREATE;
+
+typedef
+_IRQL_requires_same_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+EVT_WDF_FILE_CLOSE(
+    _In_
+    WDFFILEOBJECT FileObject
+);
+
+typedef EVT_WDF_FILE_CLOSE* PFN_WDF_FILE_CLOSE;
+
+typedef
+_IRQL_requires_same_
+_IRQL_requires_max_(PASSIVE_LEVEL)
+VOID
+EVT_WDF_FILE_CLEANUP(
+    _In_
+    WDFFILEOBJECT FileObject
+);
+
+typedef EVT_WDF_FILE_CLEANUP* PFN_WDF_FILE_CLEANUP;
+
+typedef enum _WDF_FILEOBJECT_CLASS {
+    WdfFileObjectInvalid = 0,
+    WdfFileObjectNotRequired = 1,
+    WdfFileObjectWdfCanUseFsContext = 2,
+    WdfFileObjectWdfCanUseFsContext2 = 3,
+    WdfFileObjectWdfCannotUseFsContexts = 4,
+    WdfFileObjectCanBeOptional = 0x80000000,
+} WDF_FILEOBJECT_CLASS, * PWDF_FILEOBJECT_CLASS;
+
+typedef struct _WDF_FILEOBJECT_CONFIG {
+    ULONG                      Size;
+    PFN_WDF_DEVICE_FILE_CREATE EvtDeviceFileCreate;
+    PFN_WDF_FILE_CLOSE         EvtFileClose;
+    PFN_WDF_FILE_CLEANUP       EvtFileCleanup;
+    WDF_TRI_STATE              AutoForwardCleanupClose;
+    WDF_FILEOBJECT_CLASS       FileObjectClass;
+} WDF_FILEOBJECT_CONFIG, * PWDF_FILEOBJECT_CONFIG;
+
 // Begin DreamLifter WDF implementation
+typedef enum _DREAMLIFTER_WDF_OBJECT_TYPE {
+    DlObjectTypeInvalid = 0,
+    DlObjectTypeDriverInstance = 1,
+    DlObjectTypeDeviceInstance = 2,
+    DlObjectTypeDeviceInit = 3,
+    DlObjectTypeSpinLock = 4,
+    DlObjectTypeTimer = 5,
+    DlObjectTypeWorkItem = 6,
+    DlObjectTypeIoQueue = 7,
+    DlObjectTypeRequest = 8,
+    DlObjectTypeMemoryBuffer = 9,
+    DlObjectTypeInterrupt = 10
+} DREAMLIFTER_WDF_OBJECT_TYPE, *PDREAMLIFTER_WDF_OBJECT_TYPE;
+
+#define DREAMLIFTER_OBJECT_HEADER_MAGIC 0x544C4644
+
+typedef struct _DREAMLIFTER_WDF_OBJECT_HEADER {
+    ULONG                       Magic;
+    DREAMLIFTER_WDF_OBJECT_TYPE Type;
+} DREAMLIFTER_WDF_OBJECT_HEADER, *PDREAMLIFTER_WDF_OBJECT_HEADER;
+
 typedef struct _DRIVER_INSTANCE {
+    DREAMLIFTER_WDF_OBJECT_HEADER  Header;
     PFN_WDF_OBJECT_CONTEXT_CLEANUP DriverCleanupCallback;
     PFN_WDF_OBJECT_CONTEXT_DESTROY DriverDestroyCallback;
     PFN_WDF_DRIVER_DEVICE_ADD      DriverDeviceAdd;
@@ -956,11 +1035,22 @@ typedef struct _DRIVER_INSTANCE {
 } DRIVER_INSTANCE, * PDRIVER_INSTANCE;
 
 typedef struct _DREAMLIFTER_DEVICE_INIT {
-    // This can be further extended
+    DREAMLIFTER_WDF_OBJECT_HEADER  Header;
+    // PnP power events
     PFN_WDF_DEVICE_PREPARE_HARDWARE EvtDevicePrepareHardware;
+    PFN_WDF_DEVICE_RELEASE_HARDWARE EvtDeviceReleaseHardware;
+    PFN_WDF_DEVICE_D0_ENTRY EvtDeviceD0Entry;
+    PFN_WDF_DEVICE_D0_EXIT EvtDeviceD0Exit;
+    // FileObject settings
+    PFN_WDF_DEVICE_FILE_CREATE EvtDeviceFileCreate;
+    PFN_WDF_FILE_CLOSE         EvtFileClose;
+    PFN_WDF_FILE_CLEANUP       EvtFileCleanup;
+    WDF_TRI_STATE              AutoForwardCleanupClose;
+    WDF_FILEOBJECT_CLASS       FileObjectClass;
 } DREAMLIFTER_DEVICE_INIT, * PDREAMLIFTER_DEVICE_INIT;
 
 typedef struct _DREAMLIFTER_SPINLOCK {
+    DREAMLIFTER_WDF_OBJECT_HEADER  Header;
     volatile long Exclusion;
 } DREAMLIFTER_SPINLOCK, * PDREAMLIFTER_SPINLOCK;
 
@@ -994,6 +1084,7 @@ void DlWdfSpinLockRelease(
 );
 
 typedef struct _DREAMLIFTER_TIMER {
+    DREAMLIFTER_WDF_OBJECT_HEADER  Header;
     PVOID ParentObject;
     BOOL AutomaticSerialization;
     PFN_WDF_TIMER EvtTimerFunc;
@@ -1042,11 +1133,20 @@ BOOLEAN DlWdfTimerStop(
     BOOLEAN Wait
 );
 
+typedef struct _DREAMLIFTER_CONTEXT_HEADER {
+    PCWDF_OBJECT_CONTEXT_TYPE_INFO WorkItemContextInfo;
+    PVOID            WorkItemContext;
+} DREAMLIFTER_CONTEXT_HEADER, *PDREAMLIFTER_CONTEXT_HEADER;
+
 typedef struct _DREAMLIFTER_WORKITEM {
+    DREAMLIFTER_WDF_OBJECT_HEADER Header;
+    // Anything with potential context will have these two at front
+    PCWDF_OBJECT_CONTEXT_TYPE_INFO WorkItemContextInfo;
+    PVOID            WorkItemContext;
+    // These can be further extended
     PFN_WDF_WORKITEM EvtWorkItemFunc;
     BOOLEAN          AutomaticSerialization;
     PVOID            ParentObject;
-
 } DREAMLIFTER_WORKITEM, * PDREAMLIFTER_WORKITEM;
 
 NTSTATUS DlWdfWorkItemCreate(
@@ -1079,7 +1179,7 @@ DWORD WINAPI DlWdfWorkItemThreadWorker(
 );
 
 PVOID DlWdfObjectGetTypedContextWorker(
-    PWDF_DRIVER_GLOBALS DriverGlobals,
+    PWDF_DRIVER_GLOBALS            DriverGlobals,
     WDFOBJECT                      Handle,
     PCWDF_OBJECT_CONTEXT_TYPE_INFO TypeInfo
 );
@@ -1097,6 +1197,23 @@ NTSTATUS DlWdfCreateDriver(
     PWDF_DRIVER_CONFIG DriverConfig,
     _Out_opt_
     WDFDRIVER* Driver
+);
+
+void DlWdfDeviceInitSetFileObjectConfig(
+    PWDFDEVICE_INIT        DeviceInit,
+    PWDF_FILEOBJECT_CONFIG FileObjectConfig,
+    PWDF_OBJECT_ATTRIBUTES FileObjectAttributes
+);
+
+NTSTATUS DlWdfDeviceCreate(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _Inout_
+    PWDFDEVICE_INIT* DeviceInit,
+    _In_opt_
+    PWDF_OBJECT_ATTRIBUTES DeviceAttributes,
+    _Out_
+    WDFDEVICE* Device
 );
 
 #endif

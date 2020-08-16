@@ -30,17 +30,6 @@ void DlWdfDeviceInitSetPnpPowerEventCallbacks(
     PWDF_PNPPOWER_EVENT_CALLBACKS PnpPowerEventCallbacks
 );
 
-NTSTATUS DlWdfDeviceCreate(
-    _In_
-    PWDF_DRIVER_GLOBALS DriverGlobals,
-    _Inout_
-    PWDFDEVICE_INIT* DeviceInit,
-    _In_opt_
-    PWDF_OBJECT_ATTRIBUTES DeviceAttributes,
-    _Out_
-    WDFDEVICE* Device
-);
-
 NTSTATUS DlWdfCreateDeviceInterface(
     _In_
     PWDF_DRIVER_GLOBALS DriverGlobals,
