@@ -324,28 +324,3 @@ DWORD WINAPI ServiceWorkerThread(
     return ERROR_SUCCESS;
 }
 
-NTSTATUS DlWdfUmFunctionImplStub()
-{
-    // Calling a function that is not yet implemented.
-    printf("[ERROR] Calling a unimplemented WDF Fx stub function\n");
-
-    if (IsDebuggerPresent())
-    {
-        DebugBreak();
-    }
-
-    return STATUS_NOT_IMPLEMENTED;
-}
-
-NTSTATUS DlWdfCxUcmFunctionImplStub()
-{
-    // Calling a function that is not yet implemented.
-    printf("[ERROR] Calling a unimplemented WDF UcmCx stub function\n");
-
-    if (IsDebuggerPresent())
-    {
-        DebugBreak();
-    }
-
-    return STATUS_NOT_IMPLEMENTED;
-}

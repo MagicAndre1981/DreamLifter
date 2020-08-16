@@ -356,6 +356,7 @@
     <ClInclude Include="include\MinUmdfLoaderInterface.h" />
     <ClInclude Include="include\wdf\FxShared.h" />
     <ClInclude Include="include\wdf\km\KmdfDriverEnums0115.h" />
+    <ClInclude Include="include\wdf\km\MinKmdf0115.h" />
     <ClInclude Include="include\wdf\UcmCx\MinUcmCx0100.h" />
     <ClInclude Include="include\wdf\UcmCx\UcmFuncEnums0100.h" />
     <ClInclude Include="include\wdf\um\MinUmdf0215.h" />

@@ -75,6 +75,9 @@
     <ClInclude Include="include\wdf\FxShared.h">
       <Filter>Header Files\FxShared</Filter>
     </ClInclude>
+    <ClInclude Include="include\wdf\km\MinKmdf0115.h">
+      <Filter>Header Files\KMDF</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DreamLifter.c">

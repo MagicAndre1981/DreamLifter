@@ -604,3 +604,16 @@ DWORD WINAPI DlWdfWorkItemThreadWorker(
 
     return 0;
 }
+
+NTSTATUS DlWdfUmFunctionImplStub()
+{
+    // Calling a function that is not yet implemented.
+    printf("[ERROR] Calling a unimplemented WDF Fx stub function\n");
+
+    if (IsDebuggerPresent())
+    {
+        DebugBreak();
+    }
+
+    return STATUS_NOT_IMPLEMENTED;
+}
