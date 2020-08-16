@@ -13,6 +13,7 @@
 
 #include <MinUmdfLoaderInterface.h>
 
+#include <nt/NtRoutine.h>
 #include <wdf/FxShared.h>
 #include <wdf/km/MinKmdf0115.h>
 #include <wdf/um/MinUmdf0215.h>

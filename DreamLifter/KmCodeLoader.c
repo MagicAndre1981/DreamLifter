@@ -18,6 +18,7 @@
 
 #include <DreamLifter.h>
 #include <DreamLifterKmLoader.h>
+#include <KmModuleDescriptor.h>
 
 static DWORD DlKLdrGetDOSHeader(LPVOID pvData, DWORD cbSize, IMAGE_DOS_HEADER** pDOSHeader)
 {
@@ -239,17 +240,46 @@ PDRIVER_MODULE DlKmLoadModule()
 
 		while (pAddrThunk && pThunk && pThunk->u1.AddressOfData && ret == ERROR_SUCCESS)
 		{
+			PDL_MODULE_IMPLEMENTATION m = g_DlKmModules;
+			PDL_FUNCTION_DESCRIPTOR f = NULL;
+			LPCSTR functionName = NULL;
+			BOOLEAN bBuiltIn = FALSE;
+			BOOLEAN bFound = FALSE;
+
+			while (m->Version != 0) {
+				if (strcmp(m->ModuleName, szLibraryName) == 0) {
+					bBuiltIn = TRUE;
+					break;
+				}
+				m++;
+			}
+
 			if (IMAGE_SNAP_BY_ORDINAL(pThunk->u1.Ordinal))
 			{
-				LPCSTR Ordinal = (LPCSTR) IMAGE_ORDINAL(pAddrThunk->u1.Ordinal);
-				printf("[INFO] Import %s from %s, link it to DlKmImplementationStub\n", Ordinal, szLibraryName);
-				pAddrThunk->u1.Function = (UINT_PTR) (PVOID) DlKmImplementationStub;
+				functionName = (LPCSTR) IMAGE_ORDINAL(pAddrThunk->u1.Ordinal);
 			}
 			else
 			{
 				PIMAGE_IMPORT_BY_NAME pImport = (PIMAGE_IMPORT_BY_NAME)((UINT_PTR) hModule + pThunk->u1.AddressOfData);
-				printf("[INFO] Import %s from %s, link it to DlKmImplementationStub\n", pImport->Name, szLibraryName);
-				pAddrThunk->u1.Function = (UINT_PTR)(PVOID) DlKmImplementationStub;
+				functionName = (LPCSTR) pImport->Name;
+			}
+
+			if (bBuiltIn) {
+				f = m->Functions;
+				while (f->Version != 0) {
+					if (strcmp(f->FunctionName, functionName) == 0) {
+						bFound = TRUE;
+						pAddrThunk->u1.Function = (UINT_PTR) f->Entry;
+						printf("[INFO] Import %s from %s, link it to internal implementation\n", functionName, szLibraryName);
+						break;
+					}
+					f++;
+				}
+			}
+
+			if (!bFound) {
+				printf("[INFO] Import %s from %s, link it to DlKmImplementationStub\n", functionName, szLibraryName);
+				pAddrThunk->u1.Function = (UINT_PTR)(PVOID)DlKmImplementationStub;
 			}
 
 			++pThunk;
@@ -280,15 +310,50 @@ PDRIVER_MODULE DlKmLoadModule()
 
 				for (DWORD dwCount = 0; dwCount < CountRelocs; ++dwCount)
 				{
-					UINT_PTR* pVal = (UINT_PTR*)((UINT_PTR) hModule + pRelocTable->VirtualAddress + pReloc[dwCount].Offset);
+					UINT_PTR* pVal = (UINT_PTR*)((UINT_PTR)hModule + pRelocTable->VirtualAddress + pReloc[dwCount].Offset);
 
 					switch (pReloc[dwCount].Type)
 					{
 					case IMAGE_REL_BASED_DIR64:
 					case IMAGE_REL_BASED_HIGHLOW:
-					case IMAGE_REL_BASED_THUMB_MOV32:
 						*pVal += Difference;
 						break;
+					case IMAGE_REL_BASED_THUMB_MOV32:
+					{
+						DWORD inst = *pVal;
+						DWORD imm16 = ((inst << 1) & 0x0800) + ((inst << 12) & 0xf000) +
+							((inst >> 20) & 0x0700) + ((inst >> 16) & 0x00ff);
+						DWORD hi_delta;
+
+						if ((inst & 0x8000fbf0) != 0x0000f240) {
+							printf("[ERROR] Wrong Thumb2 instruction %08x, expected MOVW\n", inst);
+						}
+
+						imm16 += LOWORD(Difference);
+						hi_delta = HIWORD(Difference) + HIWORD(imm16);
+						*pVal = (inst & 0x8f00fbf0) + ((imm16 >> 1) & 0x0400) +
+							((imm16 >> 12) & 0x000f) +
+							((imm16 << 20) & 0x70000000) +
+							((imm16 << 16) & 0xff0000);
+
+						if (hi_delta != 0)
+						{
+							inst = *(UINT_PTR*)(pVal + 4);
+							imm16 = ((inst << 1) & 0x0800) + ((inst << 12) & 0xf000) +
+								((inst >> 20) & 0x0700) + ((inst >> 16) & 0x00ff);
+							imm16 += hi_delta;
+							if (imm16 > 0xffff) {
+								printf("[ERROR] Resulting immediate value won't fit: %08x\n", imm16);
+								goto exit;
+							}
+							*(UINT_PTR*)(pVal + 4) = (inst & 0x8f00fbf0) +
+								((imm16 >> 1) & 0x0400) +
+								((imm16 >> 12) & 0x000f) +
+								((imm16 << 20) & 0x70000000) +
+								((imm16 << 16) & 0xff0000);
+						}
+						break;
+					}
 					case IMAGE_REL_BASED_ABSOLUTE:
 						break;
 					default:

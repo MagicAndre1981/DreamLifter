@@ -343,6 +343,7 @@
   <ItemGroup>
     <ClCompile Include="DreamLifter.c" />
     <ClCompile Include="KmCodeLoader.c" />
+    <ClCompile Include="NtRoutine\Rtl.c" />
     <ClCompile Include="UcmCx\UcmCxLoader.c" />
     <ClCompile Include="UcmCx\MinUcmCx0100.c" />
     <ClCompile Include="UcmCx\UcmEnumDebugUtility.c" />
@@ -353,7 +354,9 @@
     <ClInclude Include="include\DreamLifter.h" />
     <ClInclude Include="include\DreamLifterKmLoader.h" />
     <ClInclude Include="include\DreamLifterService.h" />
+    <ClInclude Include="include\KmModuleDescriptor.h" />
     <ClInclude Include="include\MinUmdfLoaderInterface.h" />
+    <ClInclude Include="include\nt\NtRoutine.h" />
     <ClInclude Include="include\wdf\FxShared.h" />
     <ClInclude Include="include\wdf\km\KmdfDriverEnums0115.h" />
     <ClInclude Include="include\wdf\km\MinKmdf0115.h" />

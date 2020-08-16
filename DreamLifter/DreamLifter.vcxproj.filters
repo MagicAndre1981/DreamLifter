@@ -40,6 +40,15 @@
     <Filter Include="Source Files\NtRoutine">
       <UniqueIdentifier>{ce70c558-b813-43a2-ab0c-7e18baf7360c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\NtRoutine">
+      <UniqueIdentifier>{2800b58f-53ad-4ded-890c-dccd1ee929a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Km">
+      <UniqueIdentifier>{7d84d984-1973-4220-9f7e-881e8e2391ff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Km">
+      <UniqueIdentifier>{95eae86f-08fc-4bf2-b3d5-d60d164bf228}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\MinUmdfLoaderInterface.h">
@@ -78,6 +87,12 @@
     <ClInclude Include="include\wdf\km\MinKmdf0115.h">
       <Filter>Header Files\KMDF</Filter>
     </ClInclude>
+    <ClInclude Include="include\nt\NtRoutine.h">
+      <Filter>Header Files\NtRoutine</Filter>
+    </ClInclude>
+    <ClInclude Include="include\KmModuleDescriptor.h">
+      <Filter>Header Files\Km</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DreamLifter.c">
@@ -92,14 +107,17 @@
     <ClCompile Include="UcmCx\UcmEnumDebugUtility.c">
       <Filter>Source Files\UcmCx</Filter>
     </ClCompile>
-    <ClCompile Include="KmCodeLoader.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="UcmCx\UcmCxLoader.c">
       <Filter>Source Files\UcmCx</Filter>
     </ClCompile>
     <ClCompile Include="um\UmdfLoader.c">
       <Filter>Source Files\UMDF</Filter>
+    </ClCompile>
+    <ClCompile Include="NtRoutine\Rtl.c">
+      <Filter>Source Files\NtRoutine</Filter>
+    </ClCompile>
+    <ClCompile Include="KmCodeLoader.c">
+      <Filter>Source Files\Km</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
