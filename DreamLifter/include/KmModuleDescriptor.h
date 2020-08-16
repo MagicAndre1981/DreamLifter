@@ -146,6 +146,16 @@ DL_FUNCTION_DESCRIPTOR m_wppRoutines[] = {
 	},
 };
 
+DL_FUNCTION_DESCRIPTOR m_halRoutines[] = {
+	{
+		FUNCTION_IMPL_DESCRIPTOR_V1,
+		"KeGetCurrentIrql",
+		(PVOID) DlKeGetCurrentIrql
+	},
+	{
+		0
+	},
+};
 
 DL_MODULE_IMPLEMENTATION g_DlKmModules[] = {
 	{
@@ -159,10 +169,15 @@ DL_MODULE_IMPLEMENTATION g_DlKmModules[] = {
 		(PDL_FUNCTION_DESCRIPTOR) m_wdfldrRoutines
 	},
 	{
+		MODULE_IMPL_DESCRIPTOR_V1,
+		"HAL.dll",
+		(PDL_FUNCTION_DESCRIPTOR) m_halRoutines
+	},
+	{
 		// We don't want WPP tracing yet...
 		MODULE_IMPL_DESCRIPTOR_V1,
 		"WppRecorder.sys",
-		(PDL_FUNCTION_DESCRIPTOR)m_wppRoutines
+		(PDL_FUNCTION_DESCRIPTOR) m_wppRoutines
 	},
 	{
 		0

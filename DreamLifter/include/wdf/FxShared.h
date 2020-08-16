@@ -947,4 +947,122 @@ VOID
     WDFWORKITEM WorkItem
     );
 
+typedef struct _DREAMLIFTER_SPINLOCK {
+    volatile long Exclusion;
+} DREAMLIFTER_SPINLOCK, * PDREAMLIFTER_SPINLOCK;
+
+NTSTATUS DlWdfSpinLockCreate(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_opt_
+    PWDF_OBJECT_ATTRIBUTES SpinLockAttributes,
+    _Out_
+    WDFSPINLOCK* SpinLock
+);
+
+void DlWdfSpinLockAcquire(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    _Requires_lock_not_held_(_Curr_)
+    _Acquires_lock_(_Curr_)
+    _IRQL_saves_
+    WDFSPINLOCK SpinLock
+);
+
+void DlWdfSpinLockRelease(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    _Requires_lock_held_(_Curr_)
+    _Releases_lock_(_Curr_)
+    _IRQL_restores_
+    WDFSPINLOCK SpinLock
+);
+
+typedef struct _DREAMLIFTER_TIMER {
+    PVOID ParentObject;
+    BOOL AutomaticSerialization;
+    PFN_WDF_TIMER EvtTimerFunc;
+    HANDLE TimerHandle;
+    volatile BOOL Cancelled;
+} DREAMLIFTER_TIMER, * PDREAMLIFTER_TIMER;
+
+NTSTATUS DlWdfTimerCreate(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    PWDF_TIMER_CONFIG Config,
+    _In_
+    PWDF_OBJECT_ATTRIBUTES Attributes,
+    _Out_
+    WDFTIMER* Timer
+);
+
+WDFOBJECT DlWdfTimerGetParentObject(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFTIMER Timer
+);
+
+BOOLEAN DlWdfTimerStart(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFTIMER Timer,
+    _In_
+    LONGLONG DueTime
+);
+
+VOID CALLBACK DlTimerCallbackThreadWorker(
+    _In_ PVOID   lpParameter,
+    _In_ BOOLEAN TimerOrWaitFired
+);
+
+BOOLEAN DlWdfTimerStop(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFTIMER Timer,
+    _In_
+    BOOLEAN Wait
+);
+
+typedef struct _DREAMLIFTER_WORKITEM {
+    PFN_WDF_WORKITEM EvtWorkItemFunc;
+    BOOLEAN          AutomaticSerialization;
+    PVOID            ParentObject;
+
+} DREAMLIFTER_WORKITEM, * PDREAMLIFTER_WORKITEM;
+
+NTSTATUS DlWdfWorkItemCreate(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    PWDF_WORKITEM_CONFIG Config,
+    _In_
+    PWDF_OBJECT_ATTRIBUTES Attributes,
+    _Out_
+    WDFWORKITEM* WorkItem
+);
+
+WDFOBJECT DlWdfWorkItemGetParentObject(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFWORKITEM WorkItem
+);
+
+VOID DlWdfWorkItemEnqueue(
+    _In_
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    _In_
+    WDFWORKITEM WorkItem
+);
+
+DWORD WINAPI DlWdfWorkItemThreadWorker(
+    LPVOID lpParam
+);
+
 #endif

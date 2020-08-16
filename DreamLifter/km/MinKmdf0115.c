@@ -13,6 +13,19 @@ PVOID DlFxLdrGetWdfKmdf0115Functions()
         g_WdfFunctions0115[i] = (PVOID) DlWdfKmFunctionImplStub;
     }
 
+	g_WdfFunctions0115[WdfSpinLockCreateTableIndex] = (PVOID)DlWdfSpinLockCreate;
+	g_WdfFunctions0115[WdfSpinLockAcquireTableIndex] = (PVOID)DlWdfSpinLockAcquire;
+	g_WdfFunctions0115[WdfSpinLockReleaseTableIndex] = (PVOID)DlWdfSpinLockRelease;
+
+	g_WdfFunctions0115[WdfTimerCreateTableIndex] = (PVOID)DlWdfTimerCreate;
+	g_WdfFunctions0115[WdfTimerGetParentObjectTableIndex] = (PVOID)DlWdfTimerGetParentObject;
+	g_WdfFunctions0115[WdfTimerStartTableIndex] = (PVOID)DlWdfTimerStart;
+	g_WdfFunctions0115[WdfTimerStopTableIndex] = (PVOID)DlWdfTimerStop;
+
+	g_WdfFunctions0115[WdfWorkItemCreateTableIndex] = (PVOID)DlWdfWorkItemCreate;
+	g_WdfFunctions0115[WdfWorkItemGetParentObjectTableIndex] = (PVOID)DlWdfWorkItemGetParentObject;
+	g_WdfFunctions0115[WdfWorkItemEnqueueTableIndex] = (PVOID)DlWdfWorkItemEnqueue;
+
     return (PVOID) g_WdfFunctions0115;
 }
 

@@ -148,3 +148,5 @@ int _cdecl Dlk_vsnprintf(
 	_In_z_ _Printf_format_string_               char const* const _Format,
 	va_list           _ArgList
 );
+
+UINT8 DlKeGetCurrentIrql();

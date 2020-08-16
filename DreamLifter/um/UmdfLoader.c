@@ -17,19 +17,24 @@ PVOID DlFxLdrGetWdfUmdf0215Functions()
     g_WdfFunctions0215[WdfDeviceInitSetPnpPowerEventCallbacksTableIndex] = (PVOID)DlWdfDeviceInitSetPnpPowerEventCallbacks;
     g_WdfFunctions0215[WdfDeviceCreateTableIndex] = (PVOID)DlWdfDeviceCreate;
     g_WdfFunctions0215[WdfDeviceCreateDeviceInterfaceTableIndex] = (PVOID)DlWdfCreateDeviceInterface;
+
     g_WdfFunctions0215[WdfSpinLockCreateTableIndex] = (PVOID)DlWdfSpinLockCreate;
     g_WdfFunctions0215[WdfSpinLockAcquireTableIndex] = (PVOID)DlWdfSpinLockAcquire;
     g_WdfFunctions0215[WdfSpinLockReleaseTableIndex] = (PVOID)DlWdfSpinLockRelease;
+
     g_WdfFunctions0215[WdfRequestCompleteTableIndex] = (PVOID)DlWdfRequestComplete;
     g_WdfFunctions0215[WdfIoQueueCreateTableIndex] = (PVOID)DlWdfIoQueueCreate;
+
     g_WdfFunctions0215[WdfDriverOpenParametersRegistryKeyTableIndex] = (PVOID)DlWdfDriverOpenParametersRegistryKey;
     g_WdfFunctions0215[WdfRegistryCloseTableIndex] = (PVOID)DlWdfRegistryClose;
     g_WdfFunctions0215[WdfRegistryQueryULongTableIndex] = (PVOID)DlWdfRegistryQueryULong;
+
     g_WdfFunctions0215[WdfTimerCreateTableIndex] = (PVOID)DlWdfTimerCreate;
     g_WdfFunctions0215[WdfTimerGetParentObjectTableIndex] = (PVOID)DlWdfTimerGetParentObject;
-    g_WdfFunctions0215[WdfTimerStartTableIndex] = (PVOID)DlWdfTimerStart;
-    g_WdfFunctions0215[WdfTimerStopTableIndex] = (PVOID)DlWdfTimerStop;
-    g_WdfFunctions0215[WdfWorkItemCreateTableIndex] = (PVOID)DlWdfWorkItemCreate;
+    g_WdfFunctions0215[WdfTimerStartTableIndex] = (PVOID) DlWdfTimerStart;
+    g_WdfFunctions0215[WdfTimerStopTableIndex] = (PVOID) DlWdfTimerStop;
+
+    g_WdfFunctions0215[WdfWorkItemCreateTableIndex] = (PVOID) DlWdfWorkItemCreate;
     g_WdfFunctions0215[WdfWorkItemGetParentObjectTableIndex] = (PVOID)DlWdfWorkItemGetParentObject;
     g_WdfFunctions0215[WdfWorkItemEnqueueTableIndex] = (PVOID)DlWdfWorkItemEnqueue;
 

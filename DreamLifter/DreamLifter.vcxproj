@@ -342,6 +342,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="DreamLifter.c" />
+    <ClCompile Include="fxshared\Wdf.c" />
     <ClCompile Include="KmCodeLoader.c" />
     <ClCompile Include="km\MinKmdf0115.c" />
     <ClCompile Include="NtRoutine\CRuntime.c" />

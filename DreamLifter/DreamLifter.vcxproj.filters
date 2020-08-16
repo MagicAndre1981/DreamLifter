@@ -146,6 +146,9 @@
     <ClCompile Include="NtRoutine\CRuntime.c">
       <Filter>Source Files\NtRoutine</Filter>
     </ClCompile>
+    <ClCompile Include="fxshared\Wdf.c">
+      <Filter>Source Files\FxShared</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">
