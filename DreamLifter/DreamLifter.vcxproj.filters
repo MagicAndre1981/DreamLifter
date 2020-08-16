@@ -25,6 +25,21 @@
     <Filter Include="Header Files\UcmCx">
       <UniqueIdentifier>{5f861f54-c885-4cfe-8477-1db8d0f8a43e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\KMDF">
+      <UniqueIdentifier>{4376049a-5961-46bc-a3c0-54b63ff016ca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\FxShared">
+      <UniqueIdentifier>{82ab6ade-310a-45d3-9839-2b4e334cd2f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\KMDF">
+      <UniqueIdentifier>{1025df63-da83-40d7-85f4-a395de2737d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\FxShared">
+      <UniqueIdentifier>{ce128e09-a696-4da0-ba51-f7c3eb1f00ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\NtRoutine">
+      <UniqueIdentifier>{ce70c558-b813-43a2-ab0c-7e18baf7360c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\MinUmdfLoaderInterface.h">
@@ -54,6 +69,12 @@
     <ClInclude Include="include\DreamLifterKmLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\wdf\km\KmdfDriverEnums0115.h">
+      <Filter>Header Files\KMDF</Filter>
+    </ClInclude>
+    <ClInclude Include="include\wdf\FxShared.h">
+      <Filter>Header Files\FxShared</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="DreamLifter.c">
@@ -70,6 +91,12 @@
     </ClCompile>
     <ClCompile Include="KmCodeLoader.c">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="UcmCx\UcmCxLoader.c">
+      <Filter>Source Files\UcmCx</Filter>
+    </ClCompile>
+    <ClCompile Include="um\UmdfLoader.c">
+      <Filter>Source Files\UMDF</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

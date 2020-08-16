@@ -343,4 +343,6 @@ VOID
     UCM_POWER_ROLE CurrentPowerRole
     );
 
+PVOID DlFxLdrGetUcmCx0100Functions();
+
 #endif

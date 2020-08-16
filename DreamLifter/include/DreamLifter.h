@@ -13,21 +13,12 @@
 
 #include <MinUmdfLoaderInterface.h>
 
-#include <wdf/um/UmdfDriverEnums0215.h>
+#include <wdf/FxShared.h>
 #include <wdf/um/MinUmdf0215.h>
-
-#include <wdf/UcmCx/UcmFuncEnums0100.h>
 #include <wdf/UcmCx/MinUcmCx0100.h>
 
 #define GUEST_DRIVER_NAME "DreamLifterGuest"
 #define DL_KM_LOADER "--km"
-
-#define STATUS_SUCCESS                   ((NTSTATUS)0x00000000L)    // ntsubauth
-#define STATUS_INSUFFICIENT_RESOURCES    ((NTSTATUS)0xC000009AL)
-#define STATUS_NOT_SUPPORTED             ((NTSTATUS)0xC00000BBL)
-#define STATUS_NOT_IMPLEMENTED           ((NTSTATUS)0xC0000002L)
-#define STATUS_OBJECT_NAME_NOT_FOUND     ((NTSTATUS)0xC0000035L)
-#define STATUS_UNSUCESSFUL               ((NTSTATUS)0xC0000001L)
 
 NTSTATUS DlUmBindVersionLib(
     _In_ PVOID Context,
@@ -42,15 +33,8 @@ NTSTATUS DlUmBindExtensionClass(
     _In_ PWDF_CLASS_EXTENSION ClassExtensionInfo
 );
 
-NTSTATUS DlWdfFunctionImplStub();
+NTSTATUS DlWdfUmFunctionImplStub();
 NTSTATUS DlWdfCxUcmFunctionImplStub();
-
-// Helper
-extern NTSYSAPI BOOLEAN RtlEqualUnicodeString(
-    PCUNICODE_STRING String1,
-    PCUNICODE_STRING String2,
-    BOOLEAN          CaseInSensitive
-);
 
 // Begin DreamLifter WDF implementation
 typedef struct _DRIVER_INSTANCE {
@@ -464,7 +448,6 @@ void DbgUcmDumpPdo(UCM_PD_POWER_DATA_OBJECT Pdo);
 #define FILE_SPECIAL_ACCESS    (FILE_ANY_ACCESS)
 #define FILE_READ_ACCESS          ( 0x0001 )    // file & pipe
 #define FILE_WRITE_ACCESS         ( 0x0002 )    // file & pipe
-
 
 // UcmConnectorTypeCAttach
 #define IOCTL_UCMPROXY_TYPEC_ATTACH CTL_CODE(FILE_DEVICE_CONTROLLER, 0x900, METHOD_BUFFERED, FILE_ANY_ACCESS)
