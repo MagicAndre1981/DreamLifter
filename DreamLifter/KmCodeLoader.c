@@ -85,6 +85,75 @@ static DWORD DlKLdrGetNTHeaders(LPVOID pvData, DWORD cbSize, IMAGE_NT_HEADERS** 
 	return dwStatus;
 }
 
+IMAGE_BASE_RELOCATION* WINAPI LdrProcessRelocationBlock(void* page, UINT count,
+	USHORT* relocs, INT_PTR delta)
+{
+	while (count--)
+	{
+		USHORT offset = *relocs & 0xfff;
+		int type = *relocs >> 12;
+		switch (type)
+		{
+		case IMAGE_REL_BASED_ABSOLUTE:
+			break;
+		case IMAGE_REL_BASED_HIGH:
+			*(short*)((char*)page + offset) += HIWORD(delta);
+			break;
+		case IMAGE_REL_BASED_LOW:
+			*(short*)((char*)page + offset) += LOWORD(delta);
+			break;
+		case IMAGE_REL_BASED_HIGHLOW:
+			*(int*)((char*)page + offset) += delta;
+			break;
+		case IMAGE_REL_BASED_DIR64:
+			*(INT_PTR*)((char*)page + offset) += delta;
+			break;
+		case IMAGE_REL_BASED_THUMB_MOV32:
+		{
+			DWORD inst = *(INT_PTR*)((char*)page + offset);
+			DWORD imm16 = ((inst << 1) & 0x0800) + ((inst << 12) & 0xf000) +
+				((inst >> 20) & 0x0700) + ((inst >> 16) & 0x00ff);
+			DWORD hi_delta;
+
+			if ((inst & 0x8000fbf0) != 0x0000f240)
+				printf("[ERROR] Wrong Thumb2 instruction %08x, expected MOVW\n", inst);
+
+			imm16 += LOWORD(delta);
+			hi_delta = HIWORD(delta) + HIWORD(imm16);
+			*(INT_PTR*)((char*)page + offset) = (inst & 0x8f00fbf0) + ((imm16 >> 1) & 0x0400) +
+				((imm16 >> 12) & 0x000f) +
+				((imm16 << 20) & 0x70000000) +
+				((imm16 << 16) & 0xff0000);
+
+			if (hi_delta != 0)
+			{
+				inst = *(INT_PTR*)((char*)page + offset + 4);
+				imm16 = ((inst << 1) & 0x0800) + ((inst << 12) & 0xf000) +
+					((inst >> 20) & 0x0700) + ((inst >> 16) & 0x00ff);
+
+				if ((inst & 0x8000fbf0) != 0x0000f2c0)
+					printf("[ERROR] Wrong Thumb2 instruction %08x, expected MOVT\n", inst);
+
+				imm16 += hi_delta;
+				if (imm16 > 0xffff)
+					printf("[ERROR] Resulting immediate value won't fit: %08x\n", imm16);
+				*(INT_PTR*)((char*)page + offset + 4) = (inst & 0x8f00fbf0) +
+					((imm16 >> 1) & 0x0400) +
+					((imm16 >> 12) & 0x000f) +
+					((imm16 << 20) & 0x70000000) +
+					((imm16 << 16) & 0xff0000);
+			}
+		}
+		break;
+		default:
+			printf("[WARN] Unknown/unsupported fixup type %x.\n", type);
+			return NULL;
+		}
+		relocs++;
+	}
+	return (IMAGE_BASE_RELOCATION*) relocs;  /* return address of next block */
+}
+
 PDRIVER_MODULE DlKmLoadModule()
 {
 	HANDLE hFile = NULL;
@@ -295,75 +364,22 @@ PDRIVER_MODULE DlKmLoadModule()
 	if (RelocDirSize > 0)
 	{
 		PIMAGE_BASE_RELOCATION pRelocTable = (PIMAGE_BASE_RELOCATION)((UINT_PTR)hModule + (RelocDir.VirtualAddress));
+		PIMAGE_BASE_RELOCATION pEnd = (PIMAGE_BASE_RELOCATION)((UINT_PTR) pRelocTable + (RelocDir.Size));
 		if (pRelocTable == NULL) {
 			printf("[ERROR] Failed to locate base relocation section\n");
 			goto exit;
 		}
 
-		while (pRelocTable->SizeOfBlock)
+		CONST UINT_PTR Difference = ((UINT_PTR)hModule - pImageNtHeader->OptionalHeader.ImageBase);
+		while (pRelocTable < pEnd && pRelocTable->SizeOfBlock)
 		{
-			CONST DWORD CountRelocs = (pRelocTable->SizeOfBlock - sizeof(IMAGE_BASE_RELOCATION)) / sizeof(RELOCATION);
-			if (CountRelocs > 0)
-			{
-				PRELOCATION pReloc = (PRELOCATION)(pRelocTable + 1);
-				CONST UINT_PTR Difference = ((UINT_PTR) hModule - pImageNtHeader->OptionalHeader.ImageBase);
-
-				for (DWORD dwCount = 0; dwCount < CountRelocs; ++dwCount)
-				{
-					UINT_PTR* pVal = (UINT_PTR*)((UINT_PTR)hModule + pRelocTable->VirtualAddress + pReloc[dwCount].Offset);
-
-					switch (pReloc[dwCount].Type)
-					{
-					case IMAGE_REL_BASED_DIR64:
-					case IMAGE_REL_BASED_HIGHLOW:
-						*pVal += Difference;
-						break;
-					case IMAGE_REL_BASED_THUMB_MOV32:
-					{
-						DWORD inst = *pVal;
-						DWORD imm16 = ((inst << 1) & 0x0800) + ((inst << 12) & 0xf000) +
-							((inst >> 20) & 0x0700) + ((inst >> 16) & 0x00ff);
-						DWORD hi_delta;
-
-						if ((inst & 0x8000fbf0) != 0x0000f240) {
-							printf("[ERROR] Wrong Thumb2 instruction %08x, expected MOVW\n", inst);
-						}
-
-						imm16 += LOWORD(Difference);
-						hi_delta = HIWORD(Difference) + HIWORD(imm16);
-						*pVal = (inst & 0x8f00fbf0) + ((imm16 >> 1) & 0x0400) +
-							((imm16 >> 12) & 0x000f) +
-							((imm16 << 20) & 0x70000000) +
-							((imm16 << 16) & 0xff0000);
-
-						if (hi_delta != 0)
-						{
-							inst = *(UINT_PTR*)(pVal + 4);
-							imm16 = ((inst << 1) & 0x0800) + ((inst << 12) & 0xf000) +
-								((inst >> 20) & 0x0700) + ((inst >> 16) & 0x00ff);
-							imm16 += hi_delta;
-							if (imm16 > 0xffff) {
-								printf("[ERROR] Resulting immediate value won't fit: %08x\n", imm16);
-								goto exit;
-							}
-							*(UINT_PTR*)(pVal + 4) = (inst & 0x8f00fbf0) +
-								((imm16 >> 1) & 0x0400) +
-								((imm16 >> 12) & 0x000f) +
-								((imm16 << 20) & 0x70000000) +
-								((imm16 << 16) & 0xff0000);
-						}
-						break;
-					}
-					case IMAGE_REL_BASED_ABSOLUTE:
-						break;
-					default:
-						printf("[ERROR] Detected unsupported relocation type\n");
-						break;
-					}
-				}
-			}
-
-			pRelocTable = (PIMAGE_BASE_RELOCATION) (((UINT_PTR)pRelocTable) + pRelocTable->SizeOfBlock);
+			void* page = (char*)hModule + pRelocTable->VirtualAddress;
+			pRelocTable = LdrProcessRelocationBlock(
+				page,
+				(pRelocTable->SizeOfBlock - sizeof(IMAGE_BASE_RELOCATION)) / sizeof(USHORT),
+				(USHORT*)(pRelocTable + 1),
+				Difference
+			);
 		}
 	}
 
