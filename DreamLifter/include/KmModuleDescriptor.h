@@ -1,6 +1,7 @@
 #pragma once
 
 DL_FUNCTION_DESCRIPTOR m_ntRoutines[] = {
+	// RTL
 	{
 		FUNCTION_IMPL_DESCRIPTOR_V1,
 		"RtlCopyUnicodeString",
@@ -16,16 +17,19 @@ DL_FUNCTION_DESCRIPTOR m_ntRoutines[] = {
 		"RtlCompareMemory",
 		(PVOID) DlkRtlCompareMemory
 	},
+	// MM
 	{
 		FUNCTION_IMPL_DESCRIPTOR_V1,
 		"MmGetSystemRoutineAddress",
 		(PVOID) DlkMmGetSystemRoutineAddress
 	},
+	// PS
 	{
 		FUNCTION_IMPL_DESCRIPTOR_V1,
 		"PsGetVersion",
 		(PVOID) DlkPsGetVersion
 	},
+	// WMI
 	{
 		FUNCTION_IMPL_DESCRIPTOR_V1,
 		"WmiTraceMessage",
@@ -36,6 +40,7 @@ DL_FUNCTION_DESCRIPTOR m_ntRoutines[] = {
 		"WmiQueryTraceInformation",
 		(PVOID) DlkWmiQueryTraceInformation
 	},
+	// ETW
 	{
 		FUNCTION_IMPL_DESCRIPTOR_V1,
 		"EtwRegisterClassicProvider",
@@ -46,15 +51,53 @@ DL_FUNCTION_DESCRIPTOR m_ntRoutines[] = {
 		"EtwUnregister",
 		(PVOID) DlkEtwUnregister
 	},
+	// IO
 	{
 		FUNCTION_IMPL_DESCRIPTOR_V1,
 		"IoWMIRegistrationControl",
 		(PVOID) DlkIoWMIRegistrationControl
 	},
+	// Dbg
 	{
 		FUNCTION_IMPL_DESCRIPTOR_V1,
 		"DbgPrint",
 		(PVOID) DlkDbgPrint
+	},
+	// CRT
+	{
+		FUNCTION_IMPL_DESCRIPTOR_V1,
+		"wcslen",
+		(PVOID) Dlkwcslen
+	},
+	{
+		FUNCTION_IMPL_DESCRIPTOR_V1,
+		"strlen",
+		(PVOID) Dlkstrlen
+	},
+	{
+		FUNCTION_IMPL_DESCRIPTOR_V1,
+		"strcpy",
+		(PVOID) Dlkstrcpy
+	},
+	{
+		FUNCTION_IMPL_DESCRIPTOR_V1,
+		"sprintf_s",
+		(PVOID) Dlksprintf_s
+	},
+	{
+		FUNCTION_IMPL_DESCRIPTOR_V1,
+		"sprintf",
+		(PVOID) Dlksprintf
+	},
+	{
+		FUNCTION_IMPL_DESCRIPTOR_V1,
+		"_vsnwprintf",
+		(PVOID) Dlk_vsnwprintf
+	},
+	{
+		FUNCTION_IMPL_DESCRIPTOR_V1,
+		"_vsnprintf",
+		(PVOID) Dlk_vsnprintf
 	},
 	{
 		0

@@ -99,3 +99,52 @@ ULONG DlkDbgPrint(
 	PCSTR Format,
 	...
 );
+
+// C Routines
+size_t __cdecl Dlkwcslen(
+	const wchar_t* str
+);
+
+size_t __cdecl Dlkstrlen(
+	_In_z_ char const* _Str
+);
+
+char* Dlkstrcpy(
+	char* strDestination,
+	const char* strSource
+);
+
+_Success_(return >= 0)
+_Check_return_opt_
+int __cdecl Dlksprintf_s(
+	_Out_writes_(_BufferCount) _Always_(_Post_z_) char* const _Buffer,
+	_In_                                          size_t      const _BufferCount,
+	_In_z_ _Printf_format_string_                 char const* const _Format,
+	...
+);
+
+_Success_(return >= 0)
+_Check_return_opt_
+int _cdecl Dlksprintf(
+	_Pre_notnull_ _Always_(_Post_z_) char* const _Buffer,
+	_In_z_ _Printf_format_string_    char const* const _Format,
+	...
+);
+
+_Success_(return >= 0)
+_Check_return_opt_
+int _cdecl Dlk_vsnwprintf(
+	_Out_writes_opt_(_BufferCount) _Post_maybez_ wchar_t* _Buffer,
+	_In_                                         size_t         _BufferCount,
+	_In_z_ _Printf_format_string_                wchar_t const* _Format,
+	va_list        _ArgList
+);
+
+_Success_(return >= 0)
+_Check_return_opt_
+int _cdecl Dlk_vsnprintf(
+	_Out_writes_opt_(_BufferCount) _Post_maybez_ char* const _Buffer,
+	_In_                                        size_t      const _BufferCount,
+	_In_z_ _Printf_format_string_               char const* const _Format,
+	va_list           _ArgList
+);
