@@ -7,6 +7,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <Windows.h>
 #include <winternl.h>
 #include <wintrust.h>
@@ -19,6 +20,11 @@
 #include <wdf/um/MinUmdf0215.h>
 #include <wdf/UcmCx/MinUcmCx0100.h>
 
+#ifdef _MSC_VER 
+#define strncasecmp _strnicmp
+#define strcasecmp _stricmp
+#endif
+
 // TODO: separate this to a proper header file
 typedef struct _DREAMLIFTER_DEVICE {
     // This can be further extended
@@ -30,6 +36,7 @@ typedef struct _DREAMLIFTER_DEVICE {
 } DREAMLIFTER_DEVICE, * PDREAMLIFTER_DEVICE;
 
 #define GUEST_DRIVER_NAME "DreamLifterGuest"
+#define GUEST_DRIVER_NAME_KM "DreamLifterGuestKm"
 #define DL_KM_LOADER "--km"
 
 int DlStartDriverHost();

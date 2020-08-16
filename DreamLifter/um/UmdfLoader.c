@@ -65,6 +65,7 @@ NTSTATUS DlUmBindVersionLib(
         if (BindInfo->FuncCount == WdfFunctionTableNumEntries)
         {
             *BindInfo->FuncTable = g_WdfFunctions0215;
+            return STATUS_SUCCESS;
         }
         else
         {
@@ -73,5 +74,5 @@ NTSTATUS DlUmBindVersionLib(
         }
     }
 
-    return STATUS_SUCCESS;
+    return STATUS_NOT_SUPPORTED;
 }

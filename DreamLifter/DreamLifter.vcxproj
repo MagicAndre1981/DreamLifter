@@ -343,7 +343,14 @@
   <ItemGroup>
     <ClCompile Include="DreamLifter.c" />
     <ClCompile Include="KmCodeLoader.c" />
+    <ClCompile Include="km\MinKmdf0115.c" />
+    <ClCompile Include="NtRoutine\Dbg.c" />
+    <ClCompile Include="NtRoutine\Etw.c" />
+    <ClCompile Include="NtRoutine\Io.c" />
+    <ClCompile Include="NtRoutine\Mm.c" />
+    <ClCompile Include="NtRoutine\Ps.c" />
     <ClCompile Include="NtRoutine\Rtl.c" />
+    <ClCompile Include="NtRoutine\Wmi.c" />
     <ClCompile Include="UcmCx\UcmCxLoader.c" />
     <ClCompile Include="UcmCx\MinUcmCx0100.c" />
     <ClCompile Include="UcmCx\UcmEnumDebugUtility.c" />

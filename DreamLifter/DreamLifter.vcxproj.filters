@@ -119,6 +119,27 @@
     <ClCompile Include="KmCodeLoader.c">
       <Filter>Source Files\Km</Filter>
     </ClCompile>
+    <ClCompile Include="km\MinKmdf0115.c">
+      <Filter>Source Files\KMDF</Filter>
+    </ClCompile>
+    <ClCompile Include="NtRoutine\Mm.c">
+      <Filter>Source Files\NtRoutine</Filter>
+    </ClCompile>
+    <ClCompile Include="NtRoutine\Ps.c">
+      <Filter>Source Files\NtRoutine</Filter>
+    </ClCompile>
+    <ClCompile Include="NtRoutine\Wmi.c">
+      <Filter>Source Files\NtRoutine</Filter>
+    </ClCompile>
+    <ClCompile Include="NtRoutine\Etw.c">
+      <Filter>Source Files\NtRoutine</Filter>
+    </ClCompile>
+    <ClCompile Include="NtRoutine\Io.c">
+      <Filter>Source Files\NtRoutine</Filter>
+    </ClCompile>
+    <ClCompile Include="NtRoutine\Dbg.c">
+      <Filter>Source Files\NtRoutine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">

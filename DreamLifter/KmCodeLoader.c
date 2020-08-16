@@ -247,7 +247,7 @@ PDRIVER_MODULE DlKmLoadModule()
 			BOOLEAN bFound = FALSE;
 
 			while (m->Version != 0) {
-				if (strcmp(m->ModuleName, szLibraryName) == 0) {
+				if (strcasecmp(m->ModuleName, szLibraryName) == 0) {
 					bBuiltIn = TRUE;
 					break;
 				}
@@ -467,6 +467,11 @@ void DlKmImplementationStub()
 	CpuDeadLoop();
 }
 
+void DlKmImplementationStubNoOp()
+{
+	// No-op
+}
+
 void DlKmLoaderStart()
 {
 	PDRIVER_MODULE driverModule = DlKmLoadModule();
@@ -474,6 +479,7 @@ void DlKmLoaderStart()
 	PVOID pDriverObjectStub = (PVOID) driverModule;
 	NTSTATUS status = STATUS_SUCCESS;
 
+	DlFxLdrGetWdfKmdf0115Functions();
 	RtlInitUnicodeString(&FakeRegString, L"HKLM\\Something");
 	if (driverModule != NULL && driverModule->Entry != NULL) {
 		status = driverModule->Entry(pDriverObjectStub, &FakeRegString);
