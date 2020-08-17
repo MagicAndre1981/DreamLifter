@@ -1,7 +1,7 @@
 #pragma once
 
 DL_FUNCTION_DESCRIPTOR m_ntRoutines[] = {
-	// RTL
+	// Rtl
 	{
 		FUNCTION_IMPL_DESCRIPTOR_V1,
 		"RtlCopyUnicodeString",
@@ -17,19 +17,19 @@ DL_FUNCTION_DESCRIPTOR m_ntRoutines[] = {
 		"RtlCompareMemory",
 		(PVOID) DlkRtlCompareMemory
 	},
-	// MM
+	// Mm
 	{
 		FUNCTION_IMPL_DESCRIPTOR_V1,
 		"MmGetSystemRoutineAddress",
 		(PVOID) DlkMmGetSystemRoutineAddress
 	},
-	// PS
+	// Ps
 	{
 		FUNCTION_IMPL_DESCRIPTOR_V1,
 		"PsGetVersion",
 		(PVOID) DlkPsGetVersion
 	},
-	// WMI
+	// Wmi
 	{
 		FUNCTION_IMPL_DESCRIPTOR_V1,
 		"WmiTraceMessage",
@@ -40,7 +40,7 @@ DL_FUNCTION_DESCRIPTOR m_ntRoutines[] = {
 		"WmiQueryTraceInformation",
 		(PVOID) DlkWmiQueryTraceInformation
 	},
-	// ETW
+	// Etw
 	{
 		FUNCTION_IMPL_DESCRIPTOR_V1,
 		"EtwRegisterClassicProvider",
@@ -51,7 +51,7 @@ DL_FUNCTION_DESCRIPTOR m_ntRoutines[] = {
 		"EtwUnregister",
 		(PVOID) DlkEtwUnregister
 	},
-	// IO
+	// Io
 	{
 		FUNCTION_IMPL_DESCRIPTOR_V1,
 		"IoWMIRegistrationControl",
@@ -63,7 +63,7 @@ DL_FUNCTION_DESCRIPTOR m_ntRoutines[] = {
 		"DbgPrint",
 		(PVOID) DlkDbgPrint
 	},
-	// CRT
+	// Crt
 	{
 		FUNCTION_IMPL_DESCRIPTOR_V1,
 		"wcslen",
@@ -115,6 +115,42 @@ DL_FUNCTION_DESCRIPTOR m_ntRoutines[] = {
 		FUNCTION_IMPL_DESCRIPTOR_V1,
 		"ZwClose",
 		(PVOID) DlZwClose
+	},
+	// Ke
+	{
+		FUNCTION_IMPL_DESCRIPTOR_V1,
+		"KeInitializeMutex",
+		(PVOID) DlKeInitializeMutex
+	},
+	{
+		FUNCTION_IMPL_DESCRIPTOR_V1,
+		"KeReleaseMutex",
+		(PVOID) DlKeReleaseMutex
+	},
+	{
+		FUNCTION_IMPL_DESCRIPTOR_V1,
+		"KeInitializeEvent",
+		(PVOID) DlKeInitializeEvent
+	},
+	{
+		FUNCTION_IMPL_DESCRIPTOR_V1,
+		"KeClearEvent",
+		(PVOID) DlKeClearEvent
+	},
+	{
+		FUNCTION_IMPL_DESCRIPTOR_V1,
+		"KeSetEvent",
+		(PVOID) DlKeSetEvent
+	},
+	{
+		FUNCTION_IMPL_DESCRIPTOR_V1,
+		"KeReadStateEvent",
+		(PVOID) DlKeReadStateEvent
+	},
+	{
+		FUNCTION_IMPL_DESCRIPTOR_V1,
+		"KeWaitForSingleObject",
+		(PVOID) DlKeWaitForSingleObject
 	},
 	{
 		0

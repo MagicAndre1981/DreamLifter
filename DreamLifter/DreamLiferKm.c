@@ -92,6 +92,15 @@ int DlStartKmHost()
 		}
 	}
 
+	if (g_pDevice != NULL && g_pDevice->EvtDeviceD0Entry != NULL) {
+		status = g_pDevice->EvtDeviceD0Entry((WDFDEVICE)g_pDevice, WdfPowerDeviceD3);
+		if (!NT_SUCCESS(status)) {
+			printf("[ERROR] EvtDeviceD0Entry failed: 0x%x\n", status);
+			err = RtlNtStatusToDosError(status);
+			goto exit;
+		}
+	}
+
 exit:
 	return err;
 }
