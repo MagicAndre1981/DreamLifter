@@ -101,6 +101,8 @@ int DlStartKmHost()
 		}
 	}
 
+	// Begin to poll state with kernel workers, dispatch IOCTL and exchange requests
+
 exit:
 	return err;
 }
