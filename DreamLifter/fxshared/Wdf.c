@@ -4,6 +4,7 @@
 
 extern PDRIVER_INSTANCE g_pDriverInstance;
 extern PDREAMLIFTER_DEVICE g_pDevice;
+extern wchar_t* g_hdmiDpiI2cConnectionStrings[6];
 
 NTSTATUS DlWdfSpinLockCreate(
     _In_
@@ -465,6 +466,13 @@ NTSTATUS DlWdfDeviceCreate(
     pDevice->Header.Type = DlObjectTypeDeviceInstance;
 
     pDevice->EvtDevicePrepareHardware = ((PDREAMLIFTER_DEVICE_INIT)*DeviceInit)->EvtDevicePrepareHardware;
+    pDevice->EvtDeviceReleaseHardware = ((PDREAMLIFTER_DEVICE_INIT)*DeviceInit)->EvtDeviceReleaseHardware;
+    pDevice->EvtDeviceD0Entry = ((PDREAMLIFTER_DEVICE_INIT)*DeviceInit)->EvtDeviceD0Entry;
+    pDevice->EvtDeviceD0Exit = ((PDREAMLIFTER_DEVICE_INIT)*DeviceInit)->EvtDeviceD0Exit;
+    pDevice->EvtDeviceFileCreate = ((PDREAMLIFTER_DEVICE_INIT)*DeviceInit)->EvtDeviceFileCreate;
+    pDevice->EvtFileClose = ((PDREAMLIFTER_DEVICE_INIT)*DeviceInit)->EvtFileClose;
+    pDevice->EvtFileCleanup = ((PDREAMLIFTER_DEVICE_INIT)*DeviceInit)->EvtFileCleanup;
+
     if (DeviceAttributes->ContextTypeInfo != NULL) {
         pDevice->DeviceContextInfo = DeviceAttributes->ContextTypeInfo;
         contextSize = (DeviceAttributes->ContextSizeOverride > DeviceAttributes->ContextTypeInfo->ContextSize) ?
@@ -506,10 +514,10 @@ PVOID DlWdfObjectGetTypedContextWorker(
     PCWDF_OBJECT_CONTEXT_TYPE_INFO TypeInfo
 )
 {
-    
     PDREAMLIFTER_WDF_OBJECT_HEADER pObjectHeader = (PDREAMLIFTER_WDF_OBJECT_HEADER) Handle;
     if (pObjectHeader->Magic != DREAMLIFTER_OBJECT_HEADER_MAGIC) {
         TrapDebugger("[ERROR] Attempt to access invalid WDF object\n");
+        return NULL;
     }
 
     // Skip the first object header
@@ -517,9 +525,9 @@ PVOID DlWdfObjectGetTypedContextWorker(
     UNREFERENCED_PARAMETER(DriverGlobals);
 
     if (pContextHeader != NULL) {
-        if (strcmp(pContextHeader->WorkItemContextInfo->ContextName, TypeInfo->ContextName) == 0 &&
-            pContextHeader->WorkItemContextInfo->ContextSize == TypeInfo->ContextSize) {
-            return pContextHeader->WorkItemContext;
+        if (strcmp(pContextHeader->ContextInfo->ContextName, TypeInfo->ContextName) == 0 &&
+            pContextHeader->ContextInfo->ContextSize == TypeInfo->ContextSize) {
+            return pContextHeader->Context;
         }
     }
 
@@ -691,4 +699,153 @@ NTSTATUS DlWdfIoQueueCreate(
 
     *Queue = (WDFQUEUE) pDevice->DefaultIoQueue;
     return STATUS_SUCCESS;
+}
+
+ULONG DlWdfCmResourceListGetCount(
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    WDFCMRESLIST List
+)
+{
+    PDL_WDF_CM_RES_LIST pList = (PDL_WDF_CM_RES_LIST) List;
+
+    UNREFERENCED_PARAMETER(DriverGlobals);
+
+    if (pList == NULL || pList->Header.Magic != DREAMLIFTER_OBJECT_HEADER_MAGIC ||
+        pList->Header.Type != DlObjectTypeCmListTranslated) {
+        TrapDebugger("[ERROR] Sending a non CmList to WdfCmResourceListGetCount\n");
+        return 0;
+    }
+
+    return pList->ResourceCount;
+}
+
+PCM_PARTIAL_RESOURCE_DESCRIPTOR DlWdfCmResourceListGetDescriptor(
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    WDFCMRESLIST List,
+    ULONG        Index
+)
+{
+    PDL_WDF_CM_RES_LIST pList = (PDL_WDF_CM_RES_LIST) List;
+
+    UNREFERENCED_PARAMETER(DriverGlobals);
+
+    if (pList == NULL || pList->Header.Magic != DREAMLIFTER_OBJECT_HEADER_MAGIC ||
+        pList->Header.Type != DlObjectTypeCmListTranslated) {
+        TrapDebugger("[ERROR] Sending a non CmList to WdfCmResourceListGetDescriptor\n");
+        return NULL;
+    }
+
+    if (Index >= pList->ResourceCount) {
+        TrapDebugger("[ERROR] Index out of boundary\n");
+        return NULL;
+    }
+
+    return &pList->Resources[Index];
+}
+
+NTSTATUS DlWdfIoTargetCreate(
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    WDFDEVICE Device,
+    PWDF_OBJECT_ATTRIBUTES IoTargetAttributes,
+    WDFIOTARGET* IoTarget
+)
+{
+    PDL_WDF_IOTARGET pIoTarget = NULL;
+
+    UNREFERENCED_PARAMETER(DriverGlobals);
+    UNREFERENCED_PARAMETER(IoTargetAttributes);
+
+    if (IoTarget == NULL) {
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    pIoTarget = malloc(sizeof(DL_WDF_IOTARGET));
+    if (pIoTarget == NULL) {
+        printf("[ERROR] Failed to allocate resources for IO target\n");
+        return STATUS_INSUFFICIENT_RESOURCES;
+    }
+
+    RtlZeroMemory(pIoTarget, sizeof(DL_WDF_IOTARGET));
+    pIoTarget->Header.Magic = DREAMLIFTER_OBJECT_HEADER_MAGIC;
+    pIoTarget->Header.Type = DlObjectTypeIoTarget;
+    pIoTarget->ParentDevice = Device;
+    pIoTarget->TargetInternalId = 0xFFFFFFFF;
+    *IoTarget = (WDFIOTARGET)pIoTarget;
+
+    return STATUS_SUCCESS;
+}
+
+void DlWdfObjectDelete(
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    WDFOBJECT Object
+)
+{
+    PDREAMLIFTER_WDF_OBJECT_HEADER pObjectHeader = (PDREAMLIFTER_WDF_OBJECT_HEADER) Object;
+
+    UNREFERENCED_PARAMETER(DriverGlobals);
+
+    if (pObjectHeader != NULL) {
+        if (pObjectHeader->Magic != DREAMLIFTER_OBJECT_HEADER_MAGIC) {
+            TrapDebugger("[ERROR] Attempt to access invalid WDF object\n");
+            return;
+        }
+
+        // TODO: implement delete for memory objects later
+        if (pObjectHeader->Type == DlObjectTypeIoTarget) {
+            // Can be freed
+            free((PVOID)Object);
+        }
+    }
+}
+
+NTSTATUS DlWdfIoTargetOpen(
+    PWDF_DRIVER_GLOBALS        DriverGlobals,
+    WDFIOTARGET                IoTarget,
+    PWDF_IO_TARGET_OPEN_PARAMS OpenParams
+)
+{
+    PDL_WDF_IOTARGET pIoTarget = (PDL_WDF_IOTARGET) IoTarget;
+
+    UNREFERENCED_PARAMETER(DriverGlobals);
+
+    if (IoTarget == NULL || OpenParams == NULL) {
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    if (pIoTarget->Opened) {
+        return STATUS_NOT_SUPPORTED;
+    }
+
+    // Kernel proxy should have it open, we just pick and use
+    // But we need to identify the component from path string
+    pIoTarget->TargetInternalId = 0xFFFFFFFF;
+
+    for (ULONG i = 0; i < 5; i++) {
+        if (wcscmp(OpenParams->TargetDeviceName.Buffer, g_hdmiDpiI2cConnectionStrings[i]) == 0) {
+            pIoTarget->TargetInternalId = i;
+            break;
+        }
+    }
+
+    if (pIoTarget->TargetInternalId == 0xFFFFFFFF) {
+        return STATUS_OBJECT_NAME_NOT_FOUND;
+    }
+
+    pIoTarget->Opened = TRUE;
+    return STATUS_SUCCESS;
+}
+
+void DlWdfIoTargetClose(
+    PWDF_DRIVER_GLOBALS        DriverGlobals,
+    WDFIOTARGET IoTarget
+)
+{
+    PDL_WDF_IOTARGET pIoTarget = (PDL_WDF_IOTARGET)IoTarget;
+
+    UNREFERENCED_PARAMETER(DriverGlobals);
+
+    if (pIoTarget != NULL) {
+        pIoTarget->Opened = FALSE;
+        pIoTarget->TargetInternalId = 0xFFFFFFFF;
+    }
 }

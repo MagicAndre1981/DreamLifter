@@ -31,8 +31,17 @@ typedef struct _DREAMLIFTER_DEVICE {
     // Anything with potential context will have these two at front
     PCWDF_OBJECT_CONTEXT_TYPE_INFO DeviceContextInfo;
     PVOID DeviceContext;
-    // This can be further extended
+    // PnP power events
     PFN_WDF_DEVICE_PREPARE_HARDWARE EvtDevicePrepareHardware;
+    PFN_WDF_DEVICE_RELEASE_HARDWARE EvtDeviceReleaseHardware;
+    PFN_WDF_DEVICE_D0_ENTRY EvtDeviceD0Entry;
+    PFN_WDF_DEVICE_D0_EXIT EvtDeviceD0Exit;
+    // FileObject settings
+    PFN_WDF_DEVICE_FILE_CREATE EvtDeviceFileCreate;
+    PFN_WDF_FILE_CLOSE         EvtFileClose;
+    PFN_WDF_FILE_CLEANUP       EvtFileCleanup;
+    WDF_TRI_STATE              AutoForwardCleanupClose;
+    WDF_FILEOBJECT_CLASS       FileObjectClass;
     HANDLE SerializationMutex;
     PDREAMLIFTER_UCM_DEVICE UcmManagerInfo;
     PDL_WDF_INTERRUPT Interrupt;

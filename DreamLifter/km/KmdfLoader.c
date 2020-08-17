@@ -40,9 +40,17 @@ PVOID DlFxLdrGetWdfKmdf0115Functions()
 	g_WdfFunctions0115[WdfInterruptEnableTableIndex] = (PVOID) DlWdfInterruptEnable;
 	g_WdfFunctions0115[WdfInterruptDisableTableIndex] = (PVOID) DlWdfInterruptDisable;
 
-	g_WdfFunctions0115[WdfIoQueueCreateTableIndex] = (PVOID)DlWdfIoQueueCreate;
+	g_WdfFunctions0115[WdfIoQueueCreateTableIndex] = (PVOID) DlWdfIoQueueCreate;
+	g_WdfFunctions0115[WdfIoTargetCreateTableIndex] = (PVOID) DlWdfIoTargetCreate;
+	g_WdfFunctions0115[WdfIoTargetOpenTableIndex] = (PVOID) DlWdfIoTargetOpen;
+	g_WdfFunctions0115[WdfIoTargetCloseTableIndex] = (PVOID) DlWdfIoTargetClose;
 
 	g_WdfFunctions0115[WdfDeviceWdmGetDeviceObjectTableIndex] = (PVOID) DlWdfDeviceWdmGetDeviceObject;
+
+	g_WdfFunctions0115[WdfCmResourceListGetCountTableIndex] = (PVOID)DlWdfCmResourceListGetCount;
+	g_WdfFunctions0115[WdfCmResourceListGetDescriptorTableIndex] = (PVOID)DlWdfCmResourceListGetDescriptor;
+
+	g_WdfFunctions0115[WdfObjectDeleteTableIndex] = (PVOID) DlWdfObjectDelete;
 
 	return (PVOID)g_WdfFunctions0115;
 }

@@ -47,6 +47,9 @@ PVOID DlFxLdrGetWdfUmdf0215Functions()
     g_WdfFunctions0215[WdfInterruptEnableTableIndex] = (PVOID)DlWdfInterruptEnable;
     g_WdfFunctions0215[WdfInterruptDisableTableIndex] = (PVOID)DlWdfInterruptDisable;
 
+    g_WdfFunctions0215[WdfCmResourceListGetCountTableIndex] = (PVOID) DlWdfCmResourceListGetCount;
+    g_WdfFunctions0215[WdfCmResourceListGetDescriptorTableIndex] = (PVOID) DlWdfCmResourceListGetDescriptor;
+
     return (PVOID) g_WdfFunctions0215;
 }
 

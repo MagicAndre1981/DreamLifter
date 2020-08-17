@@ -3,7 +3,7 @@
 #include <DreamLifter.h>
 
 NTSTATUS DlPoRegisterPowerSettingCallback(
-	PDEVICE_OBJECT          DeviceObject,
+	PVOID					DeviceObject,
 	LPCGUID                 SettingGuid,
 	PPOWER_SETTING_CALLBACK Callback,
 	PVOID                   Context,

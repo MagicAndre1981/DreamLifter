@@ -10,6 +10,16 @@
 #define STATUS_OBJECT_NAME_NOT_FOUND     ((NTSTATUS)0xC0000035L)
 #define STATUS_UNSUCESSFUL               ((NTSTATUS)0xC0000001L)
 
+#define CmResourceTypeConnection        132   // ResType_Connection (0x8004)
+
+#define CM_RESOURCE_CONNECTION_CLASS_GPIO          0x01
+#define CM_RESOURCE_CONNECTION_CLASS_SERIAL        0x02
+
+#define CM_RESOURCE_CONNECTION_TYPE_GPIO_IO        0x02
+#define CM_RESOURCE_CONNECTION_TYPE_SERIAL_I2C     0x01
+#define CM_RESOURCE_CONNECTION_TYPE_SERIAL_SPI     0x02
+#define CM_RESOURCE_CONNECTION_TYPE_SERIAL_UART    0x03
+
 // Helper
 extern NTSYSAPI BOOLEAN RtlEqualUnicodeString(
     PCUNICODE_STRING String1,
@@ -41,6 +51,8 @@ DECLARE_HANDLE(WDFWORKITEM);
 DECLARE_HANDLE(WDFFILEOBJECT);
 
 DECLARE_HANDLE(WDFINTERRUPT);
+
+DECLARE_HANDLE(WDFIOTARGET);
 
 typedef PVOID PDRIVER_OBJECT;
 typedef PVOID PDEVICE_OBJECT;
@@ -1171,7 +1183,9 @@ typedef enum _DREAMLIFTER_WDF_OBJECT_TYPE {
     DlObjectTypeIoQueue = 7,
     DlObjectTypeRequest = 8,
     DlObjectTypeMemoryBuffer = 9,
-    DlObjectTypeInterrupt = 10
+    DlObjectTypeInterrupt = 10,
+    DlObjectTypeCmListTranslated = 11,
+    DlObjectTypeIoTarget = 12
 } DREAMLIFTER_WDF_OBJECT_TYPE, *PDREAMLIFTER_WDF_OBJECT_TYPE;
 
 #define DREAMLIFTER_OBJECT_HEADER_MAGIC 0x544C4644
@@ -1289,8 +1303,8 @@ BOOLEAN DlWdfTimerStop(
 );
 
 typedef struct _DREAMLIFTER_CONTEXT_HEADER {
-    PCWDF_OBJECT_CONTEXT_TYPE_INFO WorkItemContextInfo;
-    PVOID            WorkItemContext;
+    PCWDF_OBJECT_CONTEXT_TYPE_INFO ContextInfo;
+    PVOID Context;
 } DREAMLIFTER_CONTEXT_HEADER, *PDREAMLIFTER_CONTEXT_HEADER;
 
 typedef struct _DREAMLIFTER_WORKITEM {
@@ -1515,6 +1529,110 @@ NTSTATUS DlWdfIoQueueCreate(
     PWDF_OBJECT_ATTRIBUTES QueueAttributes,
     _Out_opt_
     WDFQUEUE* Queue
+);
+
+typedef struct _DL_WDF_CM_RES_LIST {
+    DREAMLIFTER_WDF_OBJECT_HEADER Header;
+    ULONG ResourceCount;
+    PCM_PARTIAL_RESOURCE_DESCRIPTOR Resources;
+} DL_WDF_CM_RES_LIST, *PDL_WDF_CM_RES_LIST;
+
+ULONG DlWdfCmResourceListGetCount(
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    WDFCMRESLIST List
+);
+
+PCM_PARTIAL_RESOURCE_DESCRIPTOR DlWdfCmResourceListGetDescriptor(
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    WDFCMRESLIST List,
+    ULONG        Index
+);
+
+typedef struct _DL_WDF_IOTARGET {
+    DREAMLIFTER_WDF_OBJECT_HEADER Header;
+    UNICODE_STRING TargetDeviceName;
+    PVOID ParentDevice;
+    ULONG TargetInternalId;
+    BOOLEAN Opened;
+} DL_WDF_IOTARGET, *PDL_WDF_IOTARGET;
+
+typedef enum _WDF_IO_TARGET_OPEN_TYPE {
+    WdfIoTargetOpenUndefined,
+    WdfIoTargetOpenUseExistingDevice,
+    WdfIoTargetOpenByName,
+    WdfIoTargetOpenReopen,
+    WdfIoTargetOpenLocalTargetByFile
+} WDF_IO_TARGET_OPEN_TYPE;
+
+typedef
+NTSTATUS
+EVT_WDF_IO_TARGET_QUERY_REMOVE(
+    _In_
+    WDFIOTARGET IoTarget
+);
+
+typedef EVT_WDF_IO_TARGET_QUERY_REMOVE* PFN_WDF_IO_TARGET_QUERY_REMOVE;
+
+typedef
+VOID
+EVT_WDF_IO_TARGET_REMOVE_CANCELED(
+    _In_
+    WDFIOTARGET IoTarget
+);
+
+typedef EVT_WDF_IO_TARGET_REMOVE_CANCELED* PFN_WDF_IO_TARGET_REMOVE_CANCELED;
+
+typedef
+VOID
+EVT_WDF_IO_TARGET_REMOVE_COMPLETE(
+    _In_
+    WDFIOTARGET IoTarget
+);
+
+typedef EVT_WDF_IO_TARGET_REMOVE_COMPLETE* PFN_WDF_IO_TARGET_REMOVE_COMPLETE;
+
+typedef struct _WDF_IO_TARGET_OPEN_PARAMS {
+    ULONG                             Size;
+    WDF_IO_TARGET_OPEN_TYPE           Type;
+    PFN_WDF_IO_TARGET_QUERY_REMOVE    EvtIoTargetQueryRemove;
+    PFN_WDF_IO_TARGET_REMOVE_CANCELED EvtIoTargetRemoveCanceled;
+    PFN_WDF_IO_TARGET_REMOVE_COMPLETE EvtIoTargetRemoveComplete;
+    PDEVICE_OBJECT                    TargetDeviceObject;
+    PVOID                             TargetFileObject;
+    UNICODE_STRING                    TargetDeviceName;
+    ACCESS_MASK                       DesiredAccess;
+    ULONG                             ShareAccess;
+    ULONG                             FileAttributes;
+    ULONG                             CreateDisposition;
+    ULONG                             CreateOptions;
+    PVOID                             EaBuffer;
+    ULONG                             EaBufferLength;
+    PLONGLONG                         AllocationSize;
+    ULONG                             FileInformation;
+    UNICODE_STRING                    FileName;
+} WDF_IO_TARGET_OPEN_PARAMS, * PWDF_IO_TARGET_OPEN_PARAMS;
+
+NTSTATUS DlWdfIoTargetCreate(
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    WDFDEVICE Device,
+    PWDF_OBJECT_ATTRIBUTES IoTargetAttributes,
+    WDFIOTARGET* IoTarget
+);
+
+void DlWdfObjectDelete(
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    WDFOBJECT Object
+);
+
+NTSTATUS DlWdfIoTargetOpen(
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    WDFIOTARGET                IoTarget,
+    PWDF_IO_TARGET_OPEN_PARAMS OpenParams
+);
+
+void DlWdfIoTargetClose(
+    PWDF_DRIVER_GLOBALS DriverGlobals,
+    WDFIOTARGET IoTarget
 );
 
 #endif

@@ -179,6 +179,9 @@
     <ClCompile Include="NtRoutine\Po.c">
       <Filter>Source Files\User-mode Kernel\NtRoutine</Filter>
     </ClCompile>
+    <ClCompile Include="NtRoutine\Zw.c">
+      <Filter>Source Files\User-mode Kernel\NtRoutine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Resource.rc">

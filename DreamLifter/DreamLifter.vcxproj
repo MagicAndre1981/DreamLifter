@@ -357,6 +357,7 @@
     <ClCompile Include="NtRoutine\Ps.c" />
     <ClCompile Include="NtRoutine\Rtl.c" />
     <ClCompile Include="NtRoutine\Wmi.c" />
+    <ClCompile Include="NtRoutine\Zw.c" />
     <ClCompile Include="UcmCx\UcmCxLoader.c" />
     <ClCompile Include="UcmCx\MinUcmCx0100.c" />
     <ClCompile Include="UcmCx\UcmEnumDebugUtility.c" />
