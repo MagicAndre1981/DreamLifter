@@ -18,6 +18,10 @@ NTSTATUS DlZwCreateFile(
 {
 	HANDLE hFile = INVALID_HANDLE_VALUE;
 
+	const wchar_t* devicePrefix = L"\\\\.\\";
+	UNICODE_STRING ObjectNameCopy;
+	wchar_t ObjectNameCopyBuffer[260];
+
 	UNREFERENCED_PARAMETER(DesiredAccess);
 	UNREFERENCED_PARAMETER(IoStatusBlock);
 	UNREFERENCED_PARAMETER(AllocationSize);
@@ -31,9 +35,17 @@ NTSTATUS DlZwCreateFile(
 	if (FileHandle == NULL) {
 		return STATUS_INVALID_PARAMETER;
 	}
-	
+
+	// NT Object:\??\TypeCMux
+	// Alias: \DosDevices\TypeCMux
+	// UM: Translate it to \\.\TypeCMux
+	RtlZeroMemory(ObjectNameCopyBuffer, sizeof(ObjectNameCopyBuffer));
+	ObjectNameCopy.Buffer = ObjectNameCopyBuffer;
+	ObjectNameCopy.MaximumLength = sizeof(ObjectNameCopyBuffer);
+	DlkRtlCopyUnicodeString(&ObjectNameCopy, ObjectAttributes->ObjectName);
+	RtlCopyMemory(ObjectNameCopy.Buffer, devicePrefix, 4 * sizeof(wchar_t));
 	hFile = CreateFile(
-		ObjectAttributes->ObjectName->Buffer,
+		ObjectNameCopy.Buffer,
 		0,
 		FILE_SHARE_READ | FILE_SHARE_WRITE,
 		NULL,
